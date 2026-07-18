@@ -1,4 +1,4 @@
-# Credit Risk Analytics & Decision Support cho Consumer Loans
+# Hệ thống đánh giá và chấm điểm rủi ro tín dụng vay tiêu dùng
 
 **Loại hình:** Dự án cá nhân | **Thời lượng:** 5 tuần | **Dataset:** Lending Club Loan Data (Kaggle)
 
@@ -29,7 +29,7 @@ Xây dựng một **quy trình phân tích + mô hình risk scoring** giúp chuy
 
 | Loại | Metric | Mục tiêu |
 |---|---|---|
-| Kỹ thuật (model) | AUC-ROC | ≥ 0.68 (baseline ngành cho Lending Club thường 0.68–0.72, thấp hơn Home Credit vì ít biến hành vi chi tiết) |
+| Kỹ thuật (model) | AUC-ROC | ≥ 0.68 (baseline ngành cho Lending Club thường 0.68–0.72) |
 | Kỹ thuật (model) | KS Statistic | ≥ 0.25 |
 | Kỹ thuật (model) | Gini Coefficient | Report song song với AUC |
 | Nghiệp vụ | Expected Net Return theo cutoff | Với mỗi ngưỡng score: `Interest Income kỳ vọng − Expected Loss` so với baseline không dùng score |
@@ -48,13 +48,13 @@ Không đặt mục tiêu "giảm X% default rate trong thực tế" vì dự á
 
 ## 4. Dataset
 
-**Lending Club Loan Data** (Kaggle) — nền tảng cho vay ngang hàng (P2P lending) tại Mỹ, hoạt động 2007–2020. Chọn thay cho Home Credit Default Risk vì:
+**Lending Club Loan Data** (Kaggle) — nền tảng cho vay ngang hàng (P2P lending) tại Mỹ, hoạt động 2007–2020.
 
-- **Cấu trúc đơn giản hơn**: 1 bảng phẳng chính (accepted loans) thay vì 7 bảng quan hệ → pipeline khả thi hơn nhiều cho 1 người trong 5 tuần.
-- **Có trục thời gian rõ ràng** (`issue_d` — ngày giải ngân) → làm được time-based train/test split đúng chuẩn thay vì phải giả định như với Home Credit.
-- **Có `int_rate` (lãi suất) và `grade`/`sub_grade`** → tính được doanh thu kỳ vọng theo từng khoản vay, cho phép trả lời RQ4 ("cân bằng doanh thu và rủi ro") một cách định lượng thực sự — đây là điểm Home Credit không làm được vì không có trường lãi suất/doanh thu.
-- **`loan_status` cho định nghĩa default rõ ràng**: Fully Paid / Charged Off / Default / Current / Late... — không mơ hồ như `TARGET` của Home Credit.
-- Vẫn có các biến thay thế cho "lịch sử tín dụng" tương tự bureau data: `earliest_cr_line`, `delinq_2yrs`, `open_acc`, `pub_rec`, `revol_bal`, `revol_util`, `total_acc`, `inq_last_6mths`.
+- **Cấu trúc đơn giản**: 1 bảng phẳng chính (accepted loans) → pipeline khả thi cho 1 người trong 5 tuần.
+- **Có trục thời gian rõ ràng** (`issue_d` — ngày giải ngân) → làm được time-based train/test split đúng chuẩn.
+- **Có `int_rate` (lãi suất) và `grade`/`sub_grade`** → tính được doanh thu kỳ vọng theo từng khoản vay, cho phép trả lời RQ4 ("cân bằng doanh thu và rủi ro") một cách định lượng thực sự.
+- **`loan_status` cho định nghĩa default rõ ràng**: Fully Paid / Charged Off / Default / Current / Late...
+- Có các biến thay thế cho "lịch sử tín dụng" tương tự bureau data: `earliest_cr_line`, `delinq_2yrs`, `open_acc`, `pub_rec`, `revol_bal`, `revol_util`, `total_acc`, `inq_last_6mths`.
 - Có bộ dữ liệu **hồ sơ bị từ chối** (Reject Stats) riêng, cho phép phân tích Approval Rate ở mức tham khảo.
 
 ### 4.1. Các bảng/file sử dụng
@@ -76,7 +76,7 @@ File `accepted` đầy đủ có ~2.9 triệu dòng, trải dài 2007–2020, k�
 
 - **Reject Stats và Accepted Loans không cùng schema.** Reject file chỉ có `Risk_Score` (xấp xỉ FICO) trong khi accepted file có `fico_range_low/high` — cần kiểm tra độ tương thích giữa hai trường trước khi so sánh. Vì vậy phân tích Approval Rate ở RQ5 **chỉ mang tính xấp xỉ**, không phải reject-inference chuẩn xác (accepted/rejected vẫn là hai schema khác nhau, không thể ghép thành 1 model duyệt hoàn chỉnh).
 - **`loan_status` không đối xứng theo thời gian**: khoản vay mới giải ngân gần thời điểm cắt dữ liệu sẽ thiên về "Current" (chưa có kết cục) — đây là lý do phải giới hạn về vintage đã "chín" như mục 4.2, nếu không sẽ bị **survivorship/censoring bias**.
-- Tỷ lệ default (Charged Off) trong Lending Club dao động ~15–20% tùy vintage — **ít mất cân bằng hơn Home Credit (~8%)**, thuận lợi hơn cho việc huấn luyện model.
+- Tỷ lệ default (Charged Off) trong Lending Club dao động ~15–20% tùy vintage — mức mất cân bằng nhãn vừa phải, thuận lợi cho việc huấn luyện model.
 - Lending Club đã ngừng mảng cho vay bán lẻ từ 2020 — đây là **dữ liệu lịch sử**, mô hình học từ hành vi vay P2P tại Mỹ giai đoạn 2015–2017, không nên suy rộng trực tiếp sang bối cảnh cho vay tiêu dùng khác (khác quốc gia, khác kênh phân phối) mà không kiểm định lại.
 - Rủi ro **data leakage**: các trường phát sinh *sau khi* khoản vay được giải ngân — ví dụ `total_pymnt`, `total_rec_prncp`, `total_rec_int`, `recoveries`, `last_pymnt_d`, `out_prncp` — **không được đưa vào model dự báo** (đây chính là hậu quả của khoản vay, không phải đặc điểm tại thời điểm xét duyệt). Chỉ dùng các trường có tại thời điểm nộp hồ sơ (income, dti, fico, purpose, employment length, revolving utilization tính đến thời điểm vay, v.v.).
 
@@ -104,7 +104,7 @@ File `accepted` đầy đủ có ~2.9 triệu dòng, trải dài 2007–2020, k�
 - **Business Rules**: 2–3 quy tắc override đơn giản dựa trên biến có IV cao nhất (ví dụ: `dti` vượt ngưỡng hoặc `revol_util` quá cao → Review bắt buộc dù score tốt)
 
 ### 5.4. Validation Strategy
-- **Time-based split** theo `issue_d`: train trên các quý đầu của cửa sổ 2015–2017, validate/test trên các quý sau — mô phỏng đúng kịch bản triển khai thực tế (dự báo tương lai từ dữ liệu quá khứ), khắc phục điểm yếu của Home Credit (không có mốc thời gian rõ để làm việc này)
+- **Time-based split** theo `issue_d`: train trên các quý đầu của cửa sổ 2015–2017, validate/test trên các quý sau — mô phỏng đúng kịch bản triển khai thực tế (dự báo tương lai từ dữ liệu quá khứ)
 - Kiểm tra phân bố `loan_status` (bad rate) ổn định giữa các giai đoạn train/test, phát hiện sớm nếu có vintage effect bất thường
 
 ## 6. Dashboard
@@ -113,7 +113,7 @@ File `accepted` đầy đủ có ~2.9 triệu dòng, trải dài 2007–2020, k�
 - Approval Rate (ước tính từ accepted vs. reject stats), Default Rate, Average Loan Amount
 - Top Risk Factors (theo IV)
 - Risk Distribution theo segment
-- Bad rate **và Expected Net Return** theo cutoff (biểu đồ cutoff analysis — điểm khác biệt so với bản Home Credit)
+- Bad rate **và Expected Net Return** theo cutoff (biểu đồ cutoff analysis)
 
 ### 6.2. Customer Dashboard
 - Customer Profile (thông tin cơ bản)
@@ -146,15 +146,55 @@ Dashboard
 Business Recommendation
 ```
 
-## 8. Timeline khả thi (5 tuần)
+## 8. Kế hoạch Sprint (5 tuần, chia 3 sprint)
 
-| Tuần | Nội dung chính |
-|---|---|
-| 1 | Business & Data Understanding: đọc data dictionary gốc (LCDataDictionary), xác định vintage window (2015–2017, term 36 tháng), lọc dữ liệu accepted + rejected, viết Business Requirement Document |
-| 2 | Data Cleaning + EDA + Feature Engineering, loại biến leakage, tính WOE/IV |
-| 3 | Xây Risk Scoring Model (Logistic Regression baseline + 1 model ML so sánh), time-based split, đánh giá bằng AUC/KS/Gini, chọn model cuối |
-| 4 | Segmentation theo score, Cutoff/Profitability Analysis, thiết kế Business Rules, viết Risk Analysis Report |
-| 5 | Xây Dashboard (Power BI/Tableau), hoàn thiện Final Recommendation, review & đóng gói toàn bộ deliverables |
+### Sprint 1 — Nền tảng dữ liệu & Business Understanding (Tuần 1–2)
+
+**Nội dung:**
+- Đọc data dictionary gốc (LCDataDictionary), làm rõ business problem
+- Xác định vintage window (2015–2017, term 36 tháng), lọc dữ liệu accepted + rejected
+- Viết Business Requirement Document
+- Data Cleaning (missing, outlier, encoding categorical)
+- EDA: univariate + bivariate với `loan_status`, tính WOE/IV
+- Feature Engineering, loại bỏ tường minh nhóm biến hậu-giải-ngân (leakage)
+
+**Tiêu chí hoàn thành (Definition of Done):**
+- [ ] Dataset đã lọc theo vintage 2015–2017, nhãn `loan_status` chỉ còn `{Fully Paid, Charged Off}`
+- [ ] Không còn biến hậu-giải-ngân (leakage) trong tập feature
+- [ ] Có bảng WOE/IV cho toàn bộ biến ứng viên
+- [ ] Business Requirement Document + EDA report (bản nháp) hoàn chỉnh
+
+### Sprint 2 — Risk Scoring Model (Tuần 3)
+
+**Nội dung:**
+- Time-based train/validation/test split theo `issue_d`
+- Xây baseline: Logistic Regression trên biến đã WOE-transform
+- Xây model so sánh: LightGBM hoặc XGBoost (kèm SHAP nếu chọn hướng này)
+- Đánh giá bằng AUC-ROC, KS Statistic, Gini
+- Chọn model chính cho dashboard, nêu lý do đánh đổi hiệu năng vs. khả năng giải thích
+
+**Tiêu chí hoàn thành (Definition of Done):**
+- [ ] AUC-ROC ≥ 0.68 và KS ≥ 0.25 trên tập test
+- [ ] Bảng so sánh đầy đủ 2 model (metric + thời gian train + độ giải thích)
+- [ ] Đã chọn 1 model chính, có ghi lại lý do lựa chọn
+- [ ] Kiểm tra ổn định bad rate giữa các giai đoạn train/test (phát hiện vintage effect)
+
+### Sprint 3 — Business Analysis, Segmentation, Dashboard & Recommendation (Tuần 4–5)
+
+**Nội dung:**
+- Customer Segmentation theo dải risk score (3–5 nhóm)
+- Cutoff/Profitability Analysis: approval rate, bad rate, Expected Net Return theo từng ngưỡng
+- Thiết kế 2–3 Business Rules override dựa trên biến IV cao nhất
+- Viết Risk Analysis Report (gộp với EDA report)
+- Xây Dashboard (Risk & Portfolio, Customer) trên Power BI/Tableau
+- Hoàn thiện Final Recommendation, review & đóng gói toàn bộ deliverables
+
+**Tiêu chí hoàn thành (Definition of Done):**
+- [ ] 3–5 segment rủi ro có default rate tách biệt rõ rệt (kiểm định chi-square/CI)
+- [ ] Bảng cutoff analysis đầy đủ approval rate, bad rate, Expected Net Return
+- [ ] 2 dashboard hoàn chỉnh, chạy được, đúng nội dung mục 6
+- [ ] Final Recommendation nêu rõ yếu tố rủi ro chính, đề xuất cutoff, giới hạn mô hình
+- [ ] Toàn bộ 6 deliverables ở mục 9 đã đóng gói
 
 ## 9. Deliverables
 
