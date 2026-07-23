@@ -1,0 +1,9 @@
+feature,mean_abs_shap
+fico_range_low,0.34165186194144154
+dti,0.16928375140980087
+inq_last_6mths,0.15364191577665454
+home_ownership,0.1472018668563656
+annual_inc,0.08572995271400644
+emp_length_years,0.04666440251716393
+revol_util,0.02930148578537799
+fico_range_high,0.0

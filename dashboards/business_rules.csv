@@ -1,0 +1,3 @@
+variable,threshold,rule,pct_population_flagged,bad_rate_flagged,bad_rate_overall,uplift_vs_overall
+dti,33.14,dti > 33.1 -> bat buoc Review du score tot,0.049884034827573094,0.27953506097560976,0.19942207520626593,0.08011298576934384
+inq_last_6mths,2.0,inq_last_6mths > 2.0 -> bat buoc Review du score tot,0.038068894718831986,0.2908863920099875,0.19942207520626593,0.09146431680372158
