@@ -58,15 +58,11 @@ Dù AUC tuyệt đối chưa đạt, model phân tách rủi ro rõ rệt ở m�
 
 Một kiểm chứng chéo đáng chú ý: `avg_int_rate` của 5 segment tăng đơn điệu cùng chiều với bad rate (8.71% → 15.96%). Nghĩa là risk score của dự án — dù xây **hoàn toàn độc lập** với `grade`/`int_rate` của Lending Club — vẫn xếp hạng rủi ro cùng chiều với underwriting nội bộ của LC.
 
-## 5. Đề nghị thay đổi phạm vi — cần mentor xác nhận
+## 5. Sai lệch phạm vi Dashboard — đã phát hiện và sửa
 
-**Deliverable #5 (Dashboard Power BI/Tableau).** PROPOSAL mục 9 cam kết 2 dashboard, DoD Sprint 3 yêu cầu "2 dashboard hoàn chỉnh, chạy được". Hiện `BRD.md` mục 3 đang ghi phần này là **ngoài phạm vi**, chỉ export dữ liệu tổng hợp ra `dashboards/` (5 file CSV: `segment_summary`, `cutoff_table`, `iv_ranking`, `business_rules`, `customer_dashboard_data`).
+**Deliverable #5 (Dashboard Power BI/Tableau).** PROPOSAL mục 9 cam kết 2 dashboard, DoD Sprint 3 yêu cầu "2 dashboard hoàn chỉnh, chạy được". `BRD.md` mục 3 từng tự ý ghi phần này là **ngoài phạm vi** (chỉ export dữ liệu tổng hợp ra `dashboards/`), trong khi bản kiến trúc hệ thống đã nộp cho mentor (`Credit Risk Scoring System — Architecture`) vẽ rõ **2 dashboard là output cam kết** (Risk & Portfolio Dashboard, Customer Dashboard) trong luồng xử lý đầu-cuối — tức là BRD mâu thuẫn với chính cam kết đã gửi mentor, không chỉ với PROPOSAL.
 
-Đây là thay đổi so với cam kết ban đầu nên xin nêu tường minh để mentor quyết, thay vì tự điều chỉnh trong BRD:
-- **Phương án A** — giữ nguyên cam kết, dựng 2 dashboard thật ở Sprint 3 (dữ liệu đã sẵn sàng, chi phí chủ yếu là thời gian dựng giao diện).
-- **Phương án B** — chốt lại phạm vi thành "export data layer + mô tả thiết kế dashboard", dồn thời gian tiết kiệm được sang cải thiện chất lượng model (mục 6).
-
-Kiến nghị của em: **Phương án A**, vì dashboard là 1 trong 6 deliverable đã cam kết và dữ liệu nền đã có sẵn. Nhưng nếu mentor ưu tiên chất lượng model hơn, phương án B hợp lý hơn về mặt đánh đổi thời gian.
+**Đã xử lý:** chọn **Phương án A** — sửa `BRD.md` mục 3, chuyển dashboard từ "Ngoài phạm vi" sang "Trong phạm vi", giữ nguyên cam kết dựng 2 dashboard thật (`.pbix`/`.twbx`) ở Sprint 3, cho nhất quán với kiến trúc đã nộp. Dữ liệu nền đã sẵn sàng (5 file trong `dashboards/`), chi phí phát sinh chủ yếu là thời gian dựng giao diện.
 
 ## 6. Vấn đề phát hiện trong sprint — 4 mục đã khắc phục, 4 mục chuyển sang Sprint 2
 

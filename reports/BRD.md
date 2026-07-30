@@ -39,10 +39,11 @@ mô phỏng trên dữ liệu lịch sử (xem mục 3 — Assumptions).
 - Credit Policy & Profitability Analysis: cutoff analysis (approval rate, bad rate, Expected Net Return).
 - Business Rules override (2–3 quy tắc dựa trên biến IV cao nhất).
 - 4 báo cáo: BRD, EDA & Risk Analysis Report, Business Rules & Policy Recommendation, Final Recommendation.
+- **2 Dashboard Power BI/Tableau** (file thật .pbix/.twbx): **Risk & Portfolio Dashboard** (Approval Rate, Default Rate, Top Risk Factors theo IV, Risk
+  Distribution theo segment, bad rate/Expected Net Return theo cutoff) và **Customer Dashboard** (Customer
+  Profile, Risk Score + Segment, Recommendation Approve/Review/Reject kèm top 3 yếu tố ảnh hưởng).
 
 **Ngoài phạm vi:**
-- Không build dashboard Power BI/Tableau dạng file thật (.pbix/.twbx) — chỉ export data tổng hợp phục vụ
-  dựng dashboard sau này nếu cần.
 - Không triển khai lên hệ thống production, không reject-inference chuẩn xác (accepted và rejected khác
   schema — chỉ so sánh tham khảo).
 

@@ -79,9 +79,10 @@ Kế thừa từ Sprint 1, chưa xử lý:
 - **Expected Net Return dùng công thức đơn giản hóa** — `int_rate` áp dụng 1 lần, không tính lãi tích lũy theo
   kỳ hạn 3 năm, nên kết luận "duyệt ngẫu nhiên bị lỗ" chưa dùng được cho quyết định. LGD cũng đang là số cố
   định 58.87% cho mọi segment.
-- **Dashboard chưa được duyệt phạm vi** — `BRD.md` ghi ngoài phạm vi (chỉ export CSV), `PROPOSAL.md` cam kết 2
-  dashboard hoàn chỉnh. Đã nêu thành đề nghị ở [Sprint 1 Review](../sprint_1_week1-2/sprint_1_review.md) mục 5,
-  **cần mentor quyết trước khi vào Sprint 3**.
+- **Dashboard — phạm vi đã chốt, chưa dựng.** Sai lệch `BRD.md` (từng ghi ngoài phạm vi) vs cam kết
+  `PROPOSAL.md`/kiến trúc đã nộp mentor đã được sửa ở [Sprint 1 Review](../sprint_1_week1-2/sprint_1_review.md)
+  mục 5 — `BRD.md` nay ghi đúng 2 dashboard là trong phạm vi. Việc còn lại là dựng 2 dashboard thật
+  (`.pbix`/`.twbx`) ở Sprint 3, dữ liệu nền đã sẵn sàng trong `dashboards/`.
 - **Vintage effect** đã xác nhận nhưng chưa xử lý — cần nêu nhu cầu recalibrate định kỳ trong phần giới hạn.
 
 Phát sinh trong Sprint 2:
