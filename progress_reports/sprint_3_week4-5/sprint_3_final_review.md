@@ -1,6 +1,6 @@
 # Sprint 3 — Final Review (Tổng kết dự án)
 
-**Thời gian:** Tuần 5 (13/08 – 19/08/2026)
+**Thời gian:** Tuần 4–5 (06/08 – 19/08/2026)
 **Đây là sprint tổng kết** — đánh giá cả output lẫn thái độ/ý thức/tinh thần làm việc trong suốt 5 tuần.
 
 ## 1. Mục tiêu Sprint 3 (theo PROPOSAL.md mục 8)
@@ -30,8 +30,8 @@
 | Sprint | Kế hoạch (PROPOSAL.md) | Thực tế | Chênh lệch & nguyên nhân |
 |---|---|---|---|
 | Sprint 1 (Tuần 1–2) | | | |
-| Sprint 2 (Tuần 3–4) | | | |
-| Sprint 3 (Tuần 5) | | | |
+| Sprint 2 (Tuần 3) | | | |
+| Sprint 3 (Tuần 4–5) | | | |
 
 ### 4.2. Success Metrics — đạt được vs mục tiêu (PROPOSAL.md mục 2)
 | Metric | Mục tiêu | Kết quả thực tế | Đạt? |
@@ -65,7 +65,8 @@
 -
 
 ## 8. Tham chiếu
+- [Tuần 4 — Báo cáo & daily log](week_4/week_4_summary.md)
 - [Tuần 5 — Báo cáo & daily log](week_5/week_5_summary.md)
 - [Sprint 1 Review](../sprint_1_week1-2/sprint_1_review.md)
-- [Sprint 2 Review](../sprint_2_week3-4/sprint_2_review.md)
+- [Sprint 2 Review](../sprint_2_week3/sprint_2_review.md)
 - [PROPOSAL.md](../../PROPOSAL.md)

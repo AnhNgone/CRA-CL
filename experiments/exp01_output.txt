@@ -1,0 +1,66 @@
+Train/Val/Test: 439698 99015 105204
+Bad rate: 0.1631 / 0.2148 / 0.1994
+
+======================================================================
+A. BASELINE - giu ca fico_range_low + fico_range_high  (8 bien: ['fico_range_low', 'fico_range_high', 'dti', 'annual_inc', 'home_ownership', 'inq_last_6mths', 'emp_length_years', 'revol_util'])
+======================================================================
+  train  AUC=0.6473  KS=0.2103  Gini=0.2946
+  val    AUC=0.6438  KS=0.2086  Gini=0.2876
+  test   AUC=0.6534  KS=0.2216  Gini=0.3068
+
+  He so Logistic Regression (ky vong TAT CA am theo quy uoc WOE):
+    dti_woe                      -0.8713
+    inq_last_6mths_woe           -0.8257
+    home_ownership_woe           -0.6941
+    annual_inc_woe               -0.4874
+    fico_range_low_woe           -0.4428
+    fico_range_high_woe          -0.4428
+    emp_length_years_woe         -0.4276
+    revol_util_woe               +0.2279  <-- SAI DAU
+
+  So he so sai dau: 1/8
+
+  IV (fit tren train):
+    fico_range_low               0.1501
+    fico_range_high              0.1501
+    dti                          0.0639
+    annual_inc                   0.0602
+    inq_last_6mths               0.0499
+    home_ownership               0.0474
+    emp_length_years             0.0235
+    revol_util                   0.0146
+
+======================================================================
+B. THI NGHIEM - thay cap FICO bang fico_mid  (7 bien: ['fico_mid', 'dti', 'annual_inc', 'home_ownership', 'inq_last_6mths', 'emp_length_years', 'revol_util'])
+======================================================================
+  train  AUC=0.6473  KS=0.2105  Gini=0.2946
+  val    AUC=0.6438  KS=0.2089  Gini=0.2876
+  test   AUC=0.6534  KS=0.2219  Gini=0.3067
+
+  He so Logistic Regression (ky vong TAT CA am theo quy uoc WOE):
+    fico_mid_woe                 -0.8858
+    dti_woe                      -0.8703
+    inq_last_6mths_woe           -0.8279
+    home_ownership_woe           -0.6935
+    annual_inc_woe               -0.4907
+    emp_length_years_woe         -0.3978
+    revol_util_woe               +0.2251  <-- SAI DAU
+
+  So he so sai dau: 1/7
+
+  IV (fit tren train):
+    fico_mid                     0.1501
+    dti                          0.0639
+    annual_inc                   0.0602
+    inq_last_6mths               0.0499
+    home_ownership               0.0474
+    emp_length_years             0.0235
+    revol_util                   0.0146
+
+======================================================================
+SO SANH (test set)
+======================================================================
+                     AUC        KS      Gini   #he so sai dau
+  A baseline      0.6534    0.2216    0.3068               1
+  B fico_mid      0.6534    0.2219    0.3067               1
+  delta (B-A)    -0.0000   +0.0003   -0.0001

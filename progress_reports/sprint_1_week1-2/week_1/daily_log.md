@@ -1,7 +1,5 @@
 # Daily Log — Tuần 1 (16/07 – 22/07/2026)
 
-Ghi ngắn gọn mỗi ngày, không cần văn phong báo cáo. Cuối tuần tổng hợp thành [week_1_summary.md](week_1_summary.md).
-
 | Ngày | Thứ | Công việc thực hiện | Kết quả / Output | Vướng mắc | Kế hoạch ngày tiếp theo |
 |---|---|---|---|---|---|
 | 16/07/2026 | Thứ Năm | Tìm hiểu đề bài, research dataset Lending Club (Kaggle), phác thảo business problem & research questions | Outline nháp cho proposal | Dataset gốc quá lớn (~2.9tr dòng, nhiều năm) → chưa chốt được phạm vi thời gian phù hợp | Chốt scope (vintage window) và viết bản proposal đầy đủ |

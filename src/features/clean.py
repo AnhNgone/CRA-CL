@@ -15,7 +15,7 @@ def parse_emp_length(x):
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Loc term (hang so sau vintage filter), parse emp_length, tao credit_history_length.
+    """Loc term (hang so sau vintage filter), parse emp_length, tao credit_history_length + fico_mid.
     Phep tinh so hoc thuan tuy, khong fit tren du lieu -> an toan goi truoc hoac sau split.
     """
     df = df.copy()
@@ -30,7 +30,14 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         + (df["issue_d"].dt.month - earliest_cr_line.dt.month)
     )
 
-    return df.drop(columns=["emp_length", "earliest_cr_line"])
+    # fico_range_low/high chenh nhau dung 4 diem, tuong quan ~1 va IV trung khop den 7 chu so
+    # thap phan -> day la MOT tin hieu bi tach doi. Dua ca hai vao Logistic Regression chi lam
+    # he so bi chia doi (thuc nghiem: -0.4428 moi bien, tong -0.8856 ~ fico_mid -0.8858) ma
+    # khong them thong tin, dong thoi pha kha nang dien giai cua scorecard.
+    # Xem experiments/exp01_fico_mid.py va reports/eda_risk_report.md muc 3.1.
+    df["fico_mid"] = (df["fico_range_low"] + df["fico_range_high"]) / 2
+
+    return df.drop(columns=["emp_length", "earliest_cr_line", "fico_range_low", "fico_range_high"])
 
 
 def winsorize(df: pd.DataFrame, bounds: dict | None = None) -> tuple[pd.DataFrame, dict]:

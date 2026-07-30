@@ -63,11 +63,22 @@ mô phỏng trên dữ liệu lịch sử (xem mục 3 — Assumptions).
 Nguồn: **Lending Club Loan Data** (Kaggle), 2 file — `accepted_2007_to_2018Q4.csv` (bắt buộc) và
 `rejected_2007_to_2018Q4.csv` (bắt buộc, chỉ dùng cho RQ5 — ước tính approval rate).
 
-**Nhóm biến dùng làm feature dự báo (tại thời điểm xét duyệt):**
-`loan_amnt`, `emp_length`, `home_ownership`, `annual_inc`, `purpose`, `dti`, `delinq_2yrs`,
-`earliest_cr_line` (→ derive `credit_history_length`), `fico_range_low/high`, `inq_last_6mths`, `open_acc`,
-`pub_rec`, `revol_bal`, `revol_util`, `total_acc`, `addr_state`. `term` bị loại vì hằng số sau khi lọc
-vintage (chỉ còn 36 tháng).
+**Nhóm biến ứng viên (có tại thời điểm xét duyệt):**
+`loan_amnt`, `emp_length` (→ derive `emp_length_years`), `home_ownership`, `annual_inc`, `purpose`, `dti`,
+`delinq_2yrs`, `earliest_cr_line` (→ derive `credit_history_length`), `fico_range_low`/`fico_range_high`
+(→ gộp thành `fico_mid`), `inq_last_6mths`, `open_acc`, `pub_rec`, `revol_bal`, `revol_util`, `total_acc`,
+`addr_state`. `term` bị loại vì hằng số sau khi lọc vintage (chỉ còn 36 tháng).
+
+`fico_range_low` và `fico_range_high` được **gộp thành một biến** `fico_mid = (low + high) / 2`: hai biến
+chênh nhau đúng 4 điểm, tương quan gần như tuyệt đối và IV trùng khớp đến 7 chữ số thập phân — đây là một tín
+hiệu bị tách đôi. Đưa cả hai vào Logistic Regression chỉ làm hệ số bị chia đôi (thực nghiệm: −0.4428 mỗi biến,
+tổng −0.8856 ≈ `fico_mid` −0.8858) mà không thêm thông tin, đồng thời phá khả năng diễn giải của scorecard.
+
+**Chọn biến vào model:** shortlist theo `IV > 0.02` (Siddiqi 2006) được tính **sau time-based split và chỉ
+trên tập train** (notebook 03). Đây là điểm đã sửa so với bản đầu — trước đó shortlist tính trên toàn bộ
+vintage nên đã dùng cả nhãn của kỳ test; sai lệch này có hậu quả thật (xem eda_risk_report.md mục 3.1).
+Nhóm biến ứng viên không lọt shortlist vẫn được giữ trong `data/processed/` để phục vụ Customer Dashboard và
+business rules, nhưng **không** được đưa vào model.
 
 **Nhóm biến nhãn:** `loan_status` (Fully Paid / Charged Off → nhãn nhị phân default).
 

@@ -2,15 +2,17 @@
 
 Folder này **tách riêng** với [`reports/`](../reports/) (chứa deliverable kỹ thuật: BRD, EDA report, business rules, final recommendation...). Đây là nơi lưu **báo cáo tiến độ theo ngày/tuần/sprint** để mentor đánh giá quá trình làm việc, theo lịch chấm điểm mentor đã thông báo.
 
-## Lịch đánh giá (5 tuần, 3 sprint)
+## Lịch sprint (5 tuần, 3 sprint)
 
-| Sprint | Tuần | Khoảng thời gian | Nội dung đánh giá |
+Thống nhất **theo [PROPOSAL.md](../PROPOSAL.md) mục 8** — ranh giới sprint bám theo nội dung kỹ thuật, không chia đều số tuần.
+
+| Sprint | Tuần | Khoảng thời gian | Nội dung |
 |---|---|---|---|
-| Sprint 1 | Tuần 1–2 | 16/07 – 29/07/2026 | Tuần 1: trình bày proposal · Tuần 2: report các bước tiếp theo · Cuối sprint: tổng hợp điểm Sprint 1 |
-| Sprint 2 | Tuần 3–4 | 30/07 – 12/08/2026 | Tương tự Sprint 1 (report tuần → tổng hợp điểm Sprint 2) |
-| Sprint 3 | Tuần 5 | 13/08 – 19/08/2026 | Sprint tổng kết — đánh giá thêm **thái độ/ý thức/tinh thần làm việc**, ngoài output |
+| Sprint 1 | Tuần 1–2 | 16/07 – 29/07/2026 | Nền tảng dữ liệu & Business Understanding — BRD, EDA, WOE/IV, feature engineering |
+| Sprint 2 | Tuần 3 | 30/07 – 05/08/2026 | Risk Scoring Model — time-based split, LR+WOE vs LightGBM, chọn model chính |
+| Sprint 3 | Tuần 4–5 | 06/08 – 19/08/2026 | Business Analysis, Segmentation, Dashboard & Recommendation. Đây cũng là **sprint tổng kết** — mentor đánh giá thêm **thái độ/ý thức/tinh thần làm việc**, ngoài output |
 
-> Lưu ý: đây là lịch **đánh giá của mentor** (2 tuần/sprint, riêng sprint cuối 1 tuần để tổng kết). Nội dung kỹ thuật từng tuần vẫn bám theo kế hoạch sprint trong [PROPOSAL.md](../PROPOSAL.md) mục 8 (Sprint 1 = nền tảng dữ liệu, Sprint 2 = modeling, Sprint 3 = business/dashboard) — hai lịch không trùng số tuần 1:1, ghi rõ trong từng weekly summary đang làm tới bước nào của PROPOSAL để mentor đối chiếu.
+> **Lưu ý cho mentor khi chấm điểm:** lịch này khác cách chia 2-tuần/sprint ban đầu (Sprint 2 = tuần 3–4, Sprint 3 = tuần 5). Đã thống nhất bám theo PROPOSAL để ranh giới sprint trùng với ranh giới nội dung kỹ thuật — Sprint 2 chỉ có 1 tuần vì phạm vi hẹp (modeling), Sprint 3 có 2 tuần vì gộp cả business analysis, dashboard và đóng gói cuối. Mốc nộp `sprint_review` vì vậy rơi vào **cuối tuần 2, cuối tuần 3 và cuối tuần 5**. Weekly summary vẫn nộp đều mỗi tuần như cũ.
 
 ## Cấu trúc folder
 
@@ -23,10 +25,16 @@ progress_reports/
     week_2/
       daily_log.md
       week_2_summary.md
-    sprint_1_review.md    # tổng hợp 2 tuần, đối chiếu Definition of Done, tự chấm điểm
-  sprint_2_week3-4/
-    ... (cấu trúc tương tự)
-  sprint_3_week5_final/
+    sprint_1_review.md    # tổng hợp sprint, đối chiếu Definition of Done, tự chấm điểm
+  sprint_2_week3/
+    week_3/
+      daily_log.md
+      week_3_summary.md
+    sprint_2_review.md
+  sprint_3_week4-5/
+    week_4/
+      daily_log.md
+      week_4_summary.md
     week_5/
       daily_log.md
       week_5_summary.md
@@ -37,9 +45,13 @@ progress_reports/
 
 1. **Hàng ngày**: điền vào `daily_log.md` của tuần hiện tại — vài dòng ngắn gọn, không cần văn phong báo cáo.
 2. **Cuối mỗi tuần**: tổng hợp từ daily log thành `week_X_summary.md` — đây là file gửi mentor xem hàng tuần.
-3. **Cuối mỗi sprint (sau tuần chẵn, hoặc tuần 5)**: tổng hợp 2 file weekly summary thành `sprint_review.md` — đối chiếu với Definition of Done của sprint tương ứng trong PROPOSAL.md, tự đánh giá.
+3. **Cuối mỗi sprint (cuối tuần 2, tuần 3, tuần 5)**: tổng hợp các weekly summary của sprint đó thành `sprint_review.md` — đối chiếu với Definition of Done của sprint tương ứng trong PROPOSAL.md, tự đánh giá.
 4. Trước khi nộp lên GitHub, xuất các file `*_summary.md` và `*_review.md` quan trọng sang PDF/DOCX nếu mentor yêu cầu định dạng đó (source vẫn giữ `.md` để dễ version control).
 
 ## Theo dõi schedule
 
-Dự án đang **chậm hơn kế hoạch dự kiến** ngay từ tuần 1. Mỗi `week_X_summary.md` có mục "Tình trạng so với kế hoạch" — dùng để mentor thấy được mức độ trễ và kế hoạch bắt kịp (catch-up plan), thay vì chỉ báo cáo output. Cập nhật trung thực mục này mỗi tuần.
+Mỗi `week_X_summary.md` có mục "Tình trạng so với kế hoạch" — dùng để mentor thấy được tiến độ thực tế và kế hoạch điều chỉnh, thay vì chỉ báo cáo output. Cập nhật trung thực mục này mỗi tuần.
+
+**Tình trạng tính đến hết Sprint 1 (29/07/2026): vượt tiến độ về khối lượng.** Sprint 1 đạt 4/4 Definition of Done, và đã có bản đầu tiên của phần lớn nội dung Sprint 2–3 (model, segmentation, cutoff, business rules, final recommendation). Việc còn lại chưa đạt là **tiêu chí AUC ≥ 0.68 / KS ≥ 0.25** của Sprint 2 (hiện 0.6516 / 0.2197) — chi tiết và hướng xử lý ở [Sprint 1 Review](sprint_1_week1-2/sprint_1_review.md) mục 6.2.
+
+> Lưu ý khi đọc: khối lượng đi trước kế hoạch không đồng nghĩa chất lượng đã chốt. Phần làm nhanh trong Sprint 1 đã phải quay lại sửa 4 lỗi phương pháp luận (xem Sprint 1 Review mục 6.1) — đây là lý do các weekly summary phân biệt rõ "bản đầu tiên" và "đã rà soát".
