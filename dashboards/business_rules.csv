@@ -1,3 +1,3 @@
-variable,threshold,rule,pct_population_flagged,bad_rate_flagged,bad_rate_overall,uplift_vs_overall
-dti,33.14,dti > 33.1 -> bat buoc Review du score tot,0.049884034827573094,0.27953506097560976,0.19942207520626593,0.08011298576934384
-inq_last_6mths,2.0,inq_last_6mths > 2.0 -> bat buoc Review du score tot,0.038068894718831986,0.2908863920099875,0.19942207520626593,0.09146431680372158
+variable,direction,threshold,rule,pct_population_flagged,bad_rate_flagged,bad_rate_overall,uplift_vs_overall_validation,uplift_vs_overall
+acc_open_past_24mths,above,11.0,acc_open_past_24mths > 11.0 -> bat buoc Review du score tot,0.04568267366259838,0.25613816063254263,0.19942207520626593,0.06692360857772597,0.05671608542627671
+bc_open_to_buy,below,155.0,bc_open_to_buy < 155.0 -> bat buoc Review du score tot,0.03944716930915174,0.2653012048192771,0.19942207520626593,0.05658144487911812,0.06587912961301118

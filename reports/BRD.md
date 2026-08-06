@@ -64,11 +64,16 @@ mô phỏng trên dữ liệu lịch sử (xem mục 3 — Assumptions).
 Nguồn: **Lending Club Loan Data** (Kaggle), 2 file — `accepted_2007_to_2018Q4.csv` (bắt buộc) và
 `rejected_2007_to_2018Q4.csv` (bắt buộc, chỉ dùng cho RQ5 — ước tính approval rate).
 
-**Nhóm biến ứng viên (có tại thời điểm xét duyệt):**
+**Nhóm biến ứng viên (có tại thời điểm xét duyệt) — 81 biến (Sprint 2, mở rộng từ 17 ở Sprint 1):**
 `loan_amnt`, `emp_length` (→ derive `emp_length_years`), `home_ownership`, `annual_inc`, `purpose`, `dti`,
 `delinq_2yrs`, `earliest_cr_line` (→ derive `credit_history_length`), `fico_range_low`/`fico_range_high`
 (→ gộp thành `fico_mid`), `inq_last_6mths`, `open_acc`, `pub_rec`, `revol_bal`, `revol_util`, `total_acc`,
-`addr_state`. `term` bị loại vì hằng số sau khi lọc vintage (chỉ còn 36 tháng).
+`addr_state`, cộng thêm nhóm **biến bureau mở rộng** (`verification_status`, `application_type`,
+`acc_open_past_24mths`, `avg_cur_bal`, `bc_open_to_buy`, `bc_util`, `mort_acc`, `mths_since_recent_inq`,
+`num_tl_op_past_12m`, `tot_hi_cred_lim`, `total_rev_hi_lim`, `percent_bc_gt_75`... — 62 biến, danh sách đầy
+đủ ở `notebooks/03_feature_engineering_split.ipynb`) và 3 **biến tỷ lệ** tự tạo (`loan_to_income`,
+`revol_bal_to_income`, `tot_cur_bal_to_income` — xem `src/features/clean.py:add_ratio_features`).
+`term` bị loại vì hằng số sau khi lọc vintage (chỉ còn 36 tháng).
 
 `fico_range_low` và `fico_range_high` được **gộp thành một biến** `fico_mid = (low + high) / 2`: hai biến
 chênh nhau đúng 4 điểm, tương quan gần như tuyệt đối và IV trùng khớp đến 7 chữ số thập phân — đây là một tín
@@ -78,8 +83,9 @@ tổng −0.8856 ≈ `fico_mid` −0.8858) mà không thêm thông tin, đồng 
 **Chọn biến vào model:** shortlist theo `IV > 0.02` (Siddiqi 2006) được tính **sau time-based split và chỉ
 trên tập train** (notebook 03). Đây là điểm đã sửa so với bản đầu — trước đó shortlist tính trên toàn bộ
 vintage nên đã dùng cả nhãn của kỳ test; sai lệch này có hậu quả thật (xem eda_risk_report.md mục 3.1).
-Nhóm biến ứng viên không lọt shortlist vẫn được giữ trong `data/processed/` để phục vụ Customer Dashboard và
-business rules, nhưng **không** được đưa vào model.
+Sau khi mở rộng candidate set ở Sprint 2, shortlist tăng từ 8/17 lên **40/81 biến**. Nhóm biến ứng viên không
+lọt shortlist vẫn được giữ trong `data/processed/` để phục vụ Customer Dashboard và business rules, nhưng
+**không** được đưa vào model.
 
 **Nhóm biến nhãn:** `loan_status` (Fully Paid / Charged Off → nhãn nhị phân default).
 

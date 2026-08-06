@@ -1,7 +1,12 @@
 import numpy as np
 import pandas as pd
 
-WINSORIZE_COLS = ["annual_inc", "dti", "revol_bal"]
+WINSORIZE_COLS = [
+    "annual_inc", "dti", "revol_bal",
+    "loan_to_income", "revol_bal_to_income", "tot_cur_bal_to_income",
+]
+
+RATIO_BASE_COLS = ["loan_amnt", "revol_bal", "tot_cur_bal"]
 
 
 def parse_emp_length(x):
@@ -38,6 +43,22 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["fico_mid"] = (df["fico_range_low"] + df["fico_range_high"]) / 2
 
     return df.drop(columns=["emp_length", "earliest_cr_line", "fico_range_low", "fico_range_high"])
+
+
+def add_ratio_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Tao bien ty le so voi annual_inc, tinh TRUOC buoc chon bien theo IV.
+
+    IV la chi so don bien: neu tinh sau khi loc, cac bien goc IV thap (vd loan_amnt) se bi
+    loai truoc khi kip tao ty le tu chung, du ty le do co the mang tin hieu manh hon
+    (vd loan_to_income = payment-to-income, thuong la yeu to underwriting quan trong).
+    annual_inc = 0 duoc coi la thieu du lieu (khong the tinh ty le), tra ve NaN.
+    """
+    df = df.copy()
+    income = df["annual_inc"].replace(0, np.nan)
+    df["loan_to_income"] = df["loan_amnt"] / income
+    df["revol_bal_to_income"] = df["revol_bal"] / income
+    df["tot_cur_bal_to_income"] = df["tot_cur_bal"] / income
+    return df
 
 
 def winsorize(df: pd.DataFrame, bounds: dict | None = None) -> tuple[pd.DataFrame, dict]:

@@ -52,6 +52,14 @@ progress_reports/
 
 Mỗi `week_X_summary.md` có mục "Tình trạng so với kế hoạch" — dùng để mentor thấy được tiến độ thực tế và kế hoạch điều chỉnh, thay vì chỉ báo cáo output. Cập nhật trung thực mục này mỗi tuần.
 
-**Tình trạng tính đến hết Sprint 1 (29/07/2026): vượt tiến độ về khối lượng.** Sprint 1 đạt 4/4 Definition of Done, và đã có bản đầu tiên của phần lớn nội dung Sprint 2–3 (model, segmentation, cutoff, business rules, final recommendation). Việc còn lại chưa đạt là **tiêu chí AUC ≥ 0.68 / KS ≥ 0.25** của Sprint 2 (hiện 0.6516 / 0.2197) — chi tiết và hướng xử lý ở [Sprint 1 Review](sprint_1_week1-2/sprint_1_review.md) mục 6.2.
+**Tình trạng tính đến hết Sprint 2 (05/08/2026): đạt Definition of Done, vượt tiến độ.** Sau khi mở rộng
+candidate feature set (17→81 biến bureau, xem [Sprint 2 Review](sprint_2_week3/sprint_2_review.md) mục 4–5),
+tiêu chí AUC ≥ 0.68 / KS ≥ 0.25 đã đạt: **LightGBM AUC 0.7004 / KS 0.2891**. Model chính đổi từ Logistic
+Regression sang **LightGBM** (chênh lệch AUC vượt ngưỡng 0.02 tự đặt). Đã làm sớm luôn phần segmentation/cutoff
+mà kế hoạch dự kiến để đầu Sprint 3.
 
-> Lưu ý khi đọc: khối lượng đi trước kế hoạch không đồng nghĩa chất lượng đã chốt. Phần làm nhanh trong Sprint 1 đã phải quay lại sửa 4 lỗi phương pháp luận (xem Sprint 1 Review mục 6.1) — đây là lý do các weekly summary phân biệt rõ "bản đầu tiên" và "đã rà soát".
+> Lưu ý khi đọc: khối lượng/tốc độ đi trước kế hoạch không đồng nghĩa không có vấn đề phát sinh. Sprint 2 phát
+> hiện và sửa 1 bug hướng quy tắc business rule (biến `bc_open_to_buy` bị flag ngược — xem Sprint 2 Review mục
+> 6) và 1 vấn đề đa cộng tuyến ở Logistic Regression (9/40 hệ số sai dấu, chưa xử lý vì không ảnh hưởng model
+> chính). Sprint 1 trước đó cũng đã phải quay lại sửa 4 lỗi phương pháp luận (xem Sprint 1 Review mục 6.1) —
+> đây là lý do các weekly summary phân biệt rõ "bản đầu tiên" và "đã rà soát".
