@@ -7,14 +7,6 @@ Model chính dùng **LightGBM** (đổi từ Logistic Regression + WOE ở Sprin
 Tất cả số liệu và biểu đồ nguồn: `reports/figures/cutoff_table.csv`, `cutoff_profitability_analysis.png`,
 `business_rules.csv`.
 
-> **Cập nhật (rà soát chất lượng cuối Sprint 2):** trước đây cutoff (tối đa hóa Expected Net Return) và ngưỡng
-> business rule được chọn **trực tiếp trên tập test**, rồi lại dùng chính test đó để báo cáo kết quả — một
-> dạng rò rỉ thông tin ở tầng quyết định kinh doanh (test không còn là dữ liệu "chưa thấy" đối với chính quyết
-> định đó), dù không ảnh hưởng đến AUC/KS của model. Đã sửa: cutoff và ngưỡng rule nay được chọn trên
-> **validation**, chỉ áp dụng (không tính lại) lên test để báo cáo. Kết quả hầu như không đổi — cutoff vẫn là
-> 0.13, ngưỡng `acc_open_past_24mths > 11` giữ nguyên — cho thấy kết luận trước đó khá vững, không phải do ăn
-> may khớp với test. Riêng ngưỡng `bc_open_to_buy` đổi từ 211 xuống 155 (xem mục 2).
-
 ## 1. Cutoff Analysis (approval rate, bad rate, Expected Net Return)
 
 **LGD (Loss Given Default) thực tế**: tính từ dữ liệu gốc (aggregate, không dùng làm feature model) =
@@ -54,7 +46,7 @@ trong vintage 2015–2017. Đây là input cho Expected Net Return bên dưới,
 Với công thức đơn giản hóa (không nhân số năm kỳ hạn), duyệt **ngẫu nhiên** ở bad rate quần thể 19.94% và
 LGD 58.87% cho kết quả **âm** (chi phí vỡ nợ vượt thu nhập lãi 1 kỳ) — đây là lý do cutoff tối ưu hóa net
 return nghiêng về chặt. So với model Sprint 1 (cutoff tối ưu chỉ duyệt 28.8%), model mới duyệt được **40.6%**
-ở cùng chiến lược tối đa hóa lợi nhuận — vì LightGBM tách nhóm rủi ro thấp rộng hơn (S1 bad rate chỉ 5.9% so
+ở cùng chiến lược tối đa hóa lợi nhuận — vì LightGBM tách nhóm rủi ro thấp rộng hơn (S1 bad rate chỉ 6.59% so
 với 8.6% trước đây), nên có thể duyệt thêm hồ sơ mà vẫn giữ bad rate nhóm duyệt thấp (9.38% so với 9.98%).
 **Đây vẫn là góc nhìn cực đoan** (tối đa hóa lợi nhuận đơn thuần, không ràng buộc khối lượng/doanh thu tối
 thiểu) — mục 3 dưới đây đề xuất mức cân bằng hơn.

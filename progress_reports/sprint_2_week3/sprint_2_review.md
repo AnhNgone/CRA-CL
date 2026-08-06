@@ -2,20 +2,12 @@
 
 **Thời gian:** Tuần 3 (30/07 – 05/08/2026)
 
-> **Trạng thái file:** đã cập nhật số liệu thật sau khi chạy lại pipeline với tập biến mở rộng (04/08/2026).
-> Mục 1–3 và 5 là bản kế hoạch đầu sprint, giữ nguyên để đối chiếu. Mục 4, 6, 7 là kết quả thực tế.
-
 ## 1. Mục tiêu Sprint (theo PROPOSAL.md mục 8)
 - Time-based train/validation/test split theo `issue_d`
 - Xây baseline: Logistic Regression trên biến đã WOE-transform
 - Xây model so sánh: LightGBM hoặc XGBoost (kèm SHAP nếu chọn hướng này)
 - Đánh giá bằng AUC-ROC, KS Statistic, Gini
 - Chọn model chính cho dashboard, nêu lý do đánh đổi hiệu năng vs. khả năng giải thích
-
-> **Lưu ý về lịch:** dự án đã thống nhất bám theo lịch `PROPOSAL.md` mục 8 (xem [README](../README.md)), nên
-> Sprint 2 chỉ gồm **tuần 3** — phạm vi hẹp và chỉ có 1 tuần. Vì phần lớn nội dung đã có bản đầu từ Sprint 1
-> (xem mục 2), thời gian tuần 3 dồn cho việc trọng tâm duy nhất ở mục 5: mở rộng tập biến để đạt ngưỡng
-> AUC/KS. Nếu việc này chưa xong trong tuần 3, phần còn lại chuyển sang đầu Sprint 3 và ghi rõ ở mục 6.
 
 ## 2. Đối chiếu Definition of Done
 
@@ -41,7 +33,7 @@ tại thời điểm mở Sprint 2:
 
 ## 4. So sánh kế hoạch vs thực tế
 - **Đạt mục tiêu chính của sprint**: AUC/KS vượt ngưỡng nhờ mở rộng candidate set đúng theo kế hoạch mục 5 (17→81 biến, 40 biến qua ngưỡng IV > 0.02). LightGBM: AUC 0.6516→0.7004, KS 0.2197→0.2891. Logistic Regression + WOE: AUC 0.6516→0.6739, KS 0.2197→0.2527.
-- **Vượt phạm vi dự kiến của tuần 3**: kế hoạch mục 5 bước 4 ("chạy lại segmentation và cutoff") dự kiến làm ở đầu Sprint 3, nhưng đã hoàn thành trong Sprint 2 — segment mới tách biệt rõ hơn nhiều (S1 bad rate 5.9% vs S5 37.5%, so với 8.6%–32.2% ở model cũ).
+- **Vượt phạm vi dự kiến của tuần 3**: kế hoạch mục 5 bước 4 ("chạy lại segmentation và cutoff") dự kiến làm ở đầu Sprint 3, nhưng đã hoàn thành trong Sprint 2 — segment mới tách biệt rõ hơn nhiều (S1 bad rate 6.59% vs S5 38.58%, so với 8.6%–32.2% ở model cũ).
 - **Chưa làm**: bước 5 (phân tích PSI) — chưa có thời gian trong tuần 3, chuyển sang Sprint 3.
 - **Phát sinh ngoài kế hoạch — quyết định chọn model chính bị đảo ngược**: ở Sprint 1, chênh lệch AUC LightGBM−LR chỉ 0.009 nên chọn LR (dễ giải thích). Sau khi mở rộng biến, chênh lệch tăng lên 0.0265 (vượt ngưỡng tự đặt 0.02) vì LightGBM tận dụng tương tác phi tuyến giữa các biến bureau tốt hơn LR + WOE (biến đổi tuyến tính). Theo đúng luật đã viết ở notebook 04, model chính đổi sang LightGBM — cần cập nhật lại phần thuyết minh "ưu tiên scorecard dễ giải thích" đã viết trong BRD/EDA report ở Sprint 1.
 - **Nguyên nhân AUC vẫn chưa đạt với LR**: đa cộng tuyến giữa các biến bureau mới (xem mục 6) làm LR không tận dụng được hết tín hiệu — không phải do thiếu biến nữa.
@@ -74,9 +66,6 @@ dùng 8 biến cơ bản nhất.
 4. Chạy lại segmentation và cutoff analysis theo model mới — điểm số đổi thì ranh giới segment cũng đổi.
 5. Bổ sung phân tích PSI nếu còn thời gian.
 
-**Phương án dự phòng nếu vẫn dưới 0.68:** báo cáo trung thực kèm phân tích nguyên nhân, và đề xuất mentor xem
-lại mức mục tiêu — vì benchmark 0.68–0.72 không cùng thiết lập với dự án này (xem điểm (a)).
-
 ## 6. Vấn đề tồn đọng / rủi ro cho Sprint 3
 
 Kế thừa từ Sprint 1, chưa xử lý:
@@ -84,10 +73,7 @@ Kế thừa từ Sprint 1, chưa xử lý:
 - **Expected Net Return dùng công thức đơn giản hóa** — `int_rate` áp dụng 1 lần, không tính lãi tích lũy theo
   kỳ hạn 3 năm, nên kết luận "duyệt ngẫu nhiên bị lỗ" chưa dùng được cho quyết định. LGD cũng đang là số cố
   định 58.87% cho mọi segment.
-- **Dashboard — phạm vi đã chốt, chưa dựng.** Sai lệch `BRD.md` (từng ghi ngoài phạm vi) vs cam kết
-  `PROPOSAL.md`/kiến trúc đã nộp mentor đã được sửa ở [Sprint 1 Review](../sprint_1_week1-2/sprint_1_review.md)
-  mục 5 — `BRD.md` nay ghi đúng 2 dashboard là trong phạm vi. Việc còn lại là dựng 2 dashboard thật
-  (`.pbix`/`.twbx`) ở Sprint 3, dữ liệu nền đã sẵn sàng trong `dashboards/`.
+
 - **Vintage effect** đã xác nhận nhưng chưa xử lý — cần nêu nhu cầu recalibrate định kỳ trong phần giới hạn.
 
 Phát sinh trong Sprint 2:
@@ -104,7 +90,7 @@ Phát sinh trong Sprint 2:
   ngẫu nhiên với 2 biến cũ `dti`/`inq_last_6mths`). Nếu không phát hiện, rule sẽ bắt buộc Review đúng nhóm
   khách hàng **an toàn hơn** (bad rate 9.5% so với 19.9% toàn cục — ngược dấu). Đã sửa: tính tương quan từng
   biến với `bad_flag` để xác định chiều rule (`>` hay `<` ngưỡng percentile), kèm assertion chặn tự động nếu
-  uplift âm. Rule mới: `acc_open_past_24mths > 11` và `bc_open_to_buy < 211`, cả hai đều tách đúng nhóm rủi ro
+  uplift âm. Rule mới: `acc_open_past_24mths > 11` và `bc_open_to_buy < 155`, cả hai đều tách đúng nhóm rủi ro
   cao hơn (~26% bad rate). Bài học: **không nên tự động hoá lựa chọn biến rule chỉ dựa trên IV mà bỏ qua chiều
   tương quan**, cần review thủ công khi mở rộng candidate set.
 - **Model chính đổi từ Logistic Regression sang LightGBM** (xem mục 4) — ảnh hưởng dây chuyền: segment boundary,
@@ -123,8 +109,7 @@ Phát sinh trong Sprint 2:
     phải vá tạm bằng cách hạ chuẩn hay đổi cách tính metric.
   - Cơ chế chặn leakage (`assert_no_leakage`) hoạt động đúng thiết kế khi mở rộng candidate set gấp ~5 lần
     (17→81 biến) — không phải rà soát thủ công từng biến mới.
-  - Phát hiện và sửa được lỗi hướng quy tắc business rule (bc_open_to_buy) **trước khi** đưa vào dashboard/báo
-    cáo mentor, nhờ luôn kiểm tra dấu uplift thay vì tin thẳng kết quả tự động — đây là loại lỗi âm thầm, nếu
+  - Phát hiện và sửa được lỗi hướng quy tắc business rule (bc_open_to_buy) **trước khi** đưa vào dashboard, nhờ luôn kiểm tra dấu uplift thay vì tin thẳng kết quả tự động — đây là loại lỗi âm thầm, nếu
     lọt vào Final Recommendation sẽ khuyến nghị sai chính sách duyệt.
 - Điểm cần cải thiện:
   - Việc mở rộng segmentation/cutoff (dự kiến đầu Sprint 3) bị dồn vào cuối Sprint 2 vì làm ngay sau khi model
