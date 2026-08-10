@@ -63,9 +63,11 @@ biến bureau tốt hơn scorecard tuyến tính. Theo đúng luật đã đặt
 - **Tại approval rate ~79%**: bad rate nhóm được duyệt theo score = 15.32%, thấp hơn 4.6 điểm % so với
   duyệt ngẫu nhiên (19.94%) — đây là mức cân bằng thực tế hơn để tham khảo làm chính sách vận hành (so với
   3.1 điểm % của model Sprint 1 — LightGBM tách nhóm rủi ro thấp rõ hơn).
-- **Cutoff tối ưu hóa Expected Net Return** (theo công thức đơn giản hóa của PROPOSAL) là `pd_score ≤ 0.13`,
-  duyệt được 40.6% hồ sơ (rộng hơn nhiều so với 28.8% của model Sprint 1) — vẫn thấp hơn approval rate vận
-  hành thực tế thường thấy, chỉ mang tính tham chiếu kỹ thuật (chi tiết: business_rules_policy.md mục 1 và 3).
+- **Cutoff tối ưu hóa uplift Expected Net Return so với duyệt ngẫu nhiên** (đã sửa công thức lãi đủ 3 năm ở
+  Tuần 5, thay vì công thức lãi 1 kỳ trước đó) là `pd_score ≤ 0.17`, duyệt được 55.9% hồ sơ trên test — rộng
+  hơn nhiều so với 40.6% của bản Sprint 2 và 28.8% của model Sprint 1. Vẫn thấp hơn approval rate vận hành
+  thực tế thường thấy, chỉ mang tính tham chiếu kỹ thuật (chi tiết, gồm cả phát hiện quan trọng về lý do
+  không còn chọn theo net return tuyệt đối: business_rules_policy.md mục 1 và 3).
 - 2 business rules override (`acc_open_past_24mths > 11`, `bc_open_to_buy < 155` → bắt buộc Review) bổ sung
   lớp kiểm soát độc lập với score, cả hai đều cho uplift bad rate rõ rệt trên test (+5.7 đến +6.6 điểm %).
   Ngưỡng được chọn trên tập validation, chỉ áp dụng (không tính lại) lên test để báo cáo — xem
@@ -75,9 +77,12 @@ biến bureau tốt hơn scorecard tuyến tính. Theo đúng luật đã đặt
 ## Giới hạn của mô hình
 
 - **Dữ liệu lịch sử mô phỏng**: Lending Club P2P lending Mỹ 2015–2017, công ty đã ngừng mảng cho vay bán lẻ
-  từ 2020 — kết quả minh họa phương pháp luận, không phải triển khai thực tế. Cần A/B test và giám sát
-  Population Stability Index (PSI) nếu áp dụng vào hệ thống hoặc thị trường khác. **PSI chưa được tính** trong
-  dự án này (việc tồn đọng, chuyển sang Sprint 3).
+  từ 2020 — kết quả minh họa phương pháp luận, không phải triển khai thực tế. Cần A/B test nếu áp dụng vào
+  hệ thống hoặc thị trường khác. **PSI đã được tính** (Tuần 5, `reports/figures/psi_report.csv`): PSI điểm
+  số giữa train→val = 0.035, train→test = 0.010, val→test = 0.011 — cả ba đều dưới ngưỡng 0.10 (ổn định),
+  không có dấu hiệu model bị lệch phân phối giữa các giai đoạn thời gian trong scope 2015–2017. Đây là kiểm
+  định nội bộ giữa các tập trong cùng vintage đã dùng để train/val/test, **không thay thế** việc giám sát
+  PSI định kỳ khi áp dụng model cho vintage mới hơn hoặc thị trường khác.
 - **Model chính là LightGBM — khó diễn giải trực tiếp hơn scorecard tuyến tính.** Bù đắp bằng SHAP
   (`reports/figures/shap_importance.csv`) để giải thích đóng góp từng biến ở cấp độ model và từng khoản vay,
   nhưng đây không tương đương với hệ số scorecard minh bạch, dễ audit như Logistic Regression + WOE. Nếu yêu
@@ -97,9 +102,13 @@ biến bureau tốt hơn scorecard tuyến tính. Theo đúng luật đã đặt
   AUC/KS của model. Đã sửa: các quyết định này nay chọn trên validation, test chỉ dùng để báo cáo 1 lần cuối.
   Kết quả hầu như không đổi (cutoff vẫn 0.13, model chính vẫn LightGBM) — xác nhận kết luận trước đó khá vững,
   không phải do ăn may khớp với test.
-- **Expected Net Return dùng công thức đơn giản hóa**: `int_rate` áp dụng 1 lần, không tính lãi tích lũy
-  theo đúng kỳ hạn 3 năm — số liệu lợi nhuận tuyệt đối (bao gồm kết luận "duyệt ngẫu nhiên bị lỗ") cần được
-  tính lại với mô hình dòng tiền đầy đủ trước khi dùng cho quyết định thực tế.
+- **Expected Net Return dùng công thức đơn giản hóa**: đã sửa lỗi "lãi 1 kỳ" ở Tuần 5 (nay nhân đúng
+  `TERM_YEARS = 3` theo kỳ hạn 36 tháng trong scope), nhưng vẫn là lãi đơn, không chiết khấu theo thời gian
+  (time value of money) và không mô hình hóa trả nợ sớm/delinquency — vẫn cần dòng tiền đầy đủ (amortization
+  schedule) trước khi dùng cho quyết định thực tế. Việc sửa này cũng phát hiện một lỗi phương pháp thứ hai:
+  chọn cutoff theo Expected Net Return **tuyệt đối** không còn hợp lý sau khi lãi tăng theo kỳ hạn (bị kéo về
+  phía duyệt gần hết hồ sơ) — đã sửa bằng cách chọn theo **uplift so với duyệt ngẫu nhiên** thay vì giá trị
+  tuyệt đối (chi tiết: business_rules_policy.md mục 1).
 - **LGD là số liệu tổng hợp cố định** (58.87%, tính từ toàn bộ khoản Charged Off trong vintage), chưa phân
   biệt theo segment/loại khách hàng — LGD thực tế có thể khác nhau giữa các nhóm rủi ro.
 - **RQ5 (approval rate accepted vs rejected)** chỉ mang tính xấp xỉ do khác schema (`Risk_Score` vs

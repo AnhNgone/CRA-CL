@@ -13,43 +13,56 @@ Tất cả số liệu và biểu đồ nguồn: `reports/figures/cutoff_table.c
 **58.87%** = 1 − (tổng vốn gốc thu hồi + recoveries) / tổng vốn gốc giải ngân, trên các khoản Charged Off
 trong vintage 2015–2017. Đây là input cho Expected Net Return bên dưới, không phải giả định tùy ý.
 
-**Công thức** (theo PROPOSAL mục 5.2): `Expected Net Return = Σ(int_rate × loan_amnt, nhóm Good được duyệt)
-− Σ(loan_amnt × LGD, nhóm Bad được duyệt)`.
+**Công thức** (theo PROPOSAL mục 5.2, đã sửa ở Tuần 5): `Expected Net Return = Σ(int_rate × loan_amnt ×
+TERM_YEARS, nhóm Good được duyệt) − Σ(loan_amnt × LGD, nhóm Bad được duyệt)`, với `TERM_YEARS = 3` (scope dự
+án chỉ giữ khoản vay kỳ hạn 36 tháng — xem PROPOSAL mục 4.2).
 
-> **Giới hạn quan trọng của công thức này**: `int_rate` được áp dụng 1 lần trên `loan_amnt` (không nhân
-> thêm số năm kỳ hạn 3 năm), đúng theo công thức đề xuất trong PROPOSAL — đây là một **đơn giản hóa**, không
-> phải thu nhập lãi thực tế trong suốt vòng đời khoản vay. Nếu tính lãi tích lũy đủ 3 năm, thu nhập lãi sẽ
-> cao hơn đáng kể và kết luận về "duyệt ngẫu nhiên có lãi hay lỗ" bên dưới có thể thay đổi. Số liệu này nên
-> được xem là **so sánh tương đối giữa các cutoff**, không phải con số lợi nhuận tuyệt đối chính xác.
+> **Đã khắc phục giới hạn "lãi 1 kỳ"**: bản trước tính `int_rate` áp dụng 1 lần trên `loan_amnt`, đánh giá
+> thấp thu nhập lãi khoảng 3 lần so với thực tế kỳ hạn 3 năm. Đã sửa bằng cách nhân thêm `TERM_YEARS`. Đây
+> vẫn là một **đơn giản hóa** (lãi đơn, không chiết khấu theo thời gian, không tính trả sớm/delinquency), số
+> liệu tuyệt đối vẫn nên được xem là **so sánh tương đối giữa các cutoff** hơn là lợi nhuận thực chính xác —
+> xem phát hiện quan trọng bên dưới về lý do vì sao so sánh tương đối lại càng quan trọng hơn sau khi sửa.
 
-> **Cập nhật Sprint 2**: bảng cutoff dưới đây được tính lại với điểm số từ LightGBM (thay Logistic Regression).
-> Vì LightGBM phân tách rủi ro tốt hơn (xem segment ở eda_risk_report.md mục 4), profile lợi nhuận theo cutoff
+> **Cập nhật Sprint 2**: bảng cutoff dưới đây dùng điểm số từ LightGBM (thay Logistic Regression). Vì
+> LightGBM phân tách rủi ro tốt hơn (xem segment ở eda_risk_report.md mục 4), profile lợi nhuận theo cutoff
 > cũng thay đổi so với bản Sprint 1.
 
 **Tại approval rate ~78.7%** (mức tham chiếu ~80% theo PROPOSAL mục 2): bad rate nhóm được duyệt theo score =
 **15.32%**, so với bad rate nếu duyệt ngẫu nhiên (= bad rate quần thể) = **19.94%** — model giảm được ~4.6
-điểm % bad rate tại cùng mức approval rate (so với ~3.1 điểm % của model Sprint 1).
+điểm % bad rate tại cùng mức approval rate (so với ~3.1 điểm % của model Sprint 1). Con số này không phụ
+thuộc vào `TERM_YEARS` (chỉ dựa trên bad rate, không dựa trên tiền lãi) nên không đổi so với Sprint 2.
 
-**Cutoff đề xuất** (tối đa hóa Expected Net Return trên tập test, theo công thức đơn giản hóa ở trên):
+> **Phát hiện quan trọng (Tuần 5) — vì sao không còn chọn cutoff theo Expected Net Return tuyệt đối:** sau
+> khi sửa `TERM_YEARS`, tổng lãi thu được tăng mạnh theo **khối lượng hồ sơ được duyệt**, khiến argmax theo
+> Expected Net Return tuyệt đối bị kéo về phía duyệt gần hết hồ sơ (~97% approval rate) — dù ở mức đó model
+> hầu như không tạo thêm giá trị gì so với duyệt ngẫu nhiên (uplift âm rất sâu). Đây chính xác là cái bẫy mà
+> lưu ý "so sánh tương đối giữa các cutoff" ở trên đã cảnh báo trước, nhưng logic chọn cutoff trước đó chưa
+> áp dụng đúng cảnh báo này. Đã sửa: chọn cutoff theo **argmax uplift so với duyệt ngẫu nhiên**
+> (`net_return_uplift_vs_random`) thay vì Expected Net Return tuyệt đối — đây mới là thước đo giá trị gia
+> tăng thực sự của risk score, không bị nhiễu bởi khối lượng.
 
-| Chỉ số | Giá trị |
+**Cutoff đề xuất** (tối đa hóa **uplift so với ngẫu nhiên** trên validation, áp dụng lên test để báo cáo):
+
+| Chỉ số | Giá trị (test) |
 |---|---|
-| Cutoff (pd_score ≤) | 0.13 |
-| Approval rate | 40.6% |
-| Bad rate (nhóm duyệt) | 9.38% |
-| Interest income | $42.09M |
-| Expected loss | $28.82M |
-| Expected Net Return | $13.27M |
-| Net Return nếu duyệt ngẫu nhiên (cùng n) | −$7.97M |
-| Uplift so với ngẫu nhiên | $21.24M |
+| Cutoff (pd_score ≤) | 0.17 |
+| Approval rate | 55.9% |
+| Bad rate (nhóm duyệt) | 11.71% |
+| Interest income (3 năm) | $183.18M |
+| Expected loss | $49.51M |
+| Expected Net Return | $133.67M |
+| Net Return nếu duyệt ngẫu nhiên (cùng n) | $133.97M |
+| Uplift so với ngẫu nhiên (test) | −$0.30M (≈0) |
+| Uplift so với ngẫu nhiên (validation, lúc chọn ngưỡng) | +$11.23M |
 
-Với công thức đơn giản hóa (không nhân số năm kỳ hạn), duyệt **ngẫu nhiên** ở bad rate quần thể 19.94% và
-LGD 58.87% cho kết quả **âm** (chi phí vỡ nợ vượt thu nhập lãi 1 kỳ) — đây là lý do cutoff tối ưu hóa net
-return nghiêng về chặt. So với model Sprint 1 (cutoff tối ưu chỉ duyệt 28.8%), model mới duyệt được **40.6%**
-ở cùng chiến lược tối đa hóa lợi nhuận — vì LightGBM tách nhóm rủi ro thấp rộng hơn (S1 bad rate chỉ 6.59% so
-với 8.6% trước đây), nên có thể duyệt thêm hồ sơ mà vẫn giữ bad rate nhóm duyệt thấp (9.38% so với 9.98%).
-**Đây vẫn là góc nhìn cực đoan** (tối đa hóa lợi nhuận đơn thuần, không ràng buộc khối lượng/doanh thu tối
-thiểu) — mục 3 dưới đây đề xuất mức cân bằng hơn.
+Với lãi tính đủ 3 năm, **duyệt ngẫu nhiên tại quy mô này cũng có lãi dương** — khác kết luận Sprint 2 ("duyệt
+ngẫu nhiên bị lỗ"), vốn là hệ quả của công thức lãi 1 kỳ đánh giá thấp thu nhập lãi. Khi lãi suất trung bình
+(~13%/năm × 3 năm) vượt xa LGD 58.87% × bad rate quần thể, hầu hết chiến lược duyệt đều sinh lãi dương về
+tổng số — **giá trị thực sự của risk score nằm ở phần uplift so với ngẫu nhiên, không phải ở việc biến lỗ
+thành lãi**. Uplift trên test tại cutoff đã chọn gần bằng 0 (dù dương rõ rệt trên validation lúc chọn ngưỡng)
+— cho thấy đường cong uplift khá phẳng quanh vùng cutoff 0.09–0.17 (xem `cutoff_table.csv`), một giới hạn cần
+nêu rõ hơn là một kết luận chắc chắn về "cutoff tối ưu duy nhất". Business rules ở mục 2 vẫn là lớp bảo vệ bổ
+sung độc lập với lựa chọn cutoff này.
 
 ## 2. Business Rules Override
 
@@ -88,19 +101,20 @@ xét duyệt thủ công bổ sung.
 
 | Quyết định | Tỷ lệ |
 |---|---|
-| Approve | 39.1% |
+| Approve | 53.2% |
 | Review (business rule override) | 8.5% |
-| Reject | 52.4% |
+| Reject | 38.3% |
 
-**Khuyến nghị**: cutoff `pd_score ≤ 0.13` (tối đa hóa net return theo công thức đơn giản hóa, chọn trên
-validation) là điểm tham chiếu kỹ thuật, duyệt được **39.1%** hồ sơ sau khi trừ phần bị business rule chuyển
-sang Review — rộng hơn
-đáng kể so với model Sprint 1 (~28%), nhưng **vẫn thấp hơn nhiều so với chính sách vận hành thực tế thường
-thấy** (thường 70–85% approval rate). Vì mục tiêu dự án là minh họa phương pháp luận (không triển khai thật —
-xem PROPOSAL mục 10), đề xuất:
+**Khuyến nghị**: cutoff `pd_score ≤ 0.17` (tối đa hóa uplift so với ngẫu nhiên, chọn trên validation — xem
+mục 1) là điểm tham chiếu kỹ thuật, duyệt được **53.2%** hồ sơ sau khi trừ phần bị business rule chuyển sang
+Review — rộng hơn đáng kể so với bản Sprint 2 (~39%, khi đó dùng công thức lãi 1 kỳ), nhưng **vẫn thấp hơn
+chính sách vận hành thực tế thường thấy** (thường 70–85% approval rate). Vì mục tiêu dự án là minh họa
+phương pháp luận (không triển khai thật — xem PROPOSAL mục 10), đề xuất:
 
 - Dùng bảng cutoff đầy đủ (`cutoff_table.csv`) để chọn điểm cân bằng theo khẩu vị rủi ro thực tế của tổ chức
-  (ví dụ mức ~79% approval rate cho bad rate 15.32%, thay vì điểm tối ưu toán học ở ~41%).
-- Trước khi dùng cutoff này cho quyết định thật, cần tính lại Expected Net Return với lãi tích lũy đúng kỳ
-  hạn (3 năm) thay vì công thức 1 kỳ hiện tại — xem giới hạn ở mục 1.
+  (ví dụ mức ~79% approval rate cho bad rate 15.32%, thay vì điểm tối ưu uplift ở ~56%).
+- Đường cong uplift khá phẳng quanh vùng cutoff 0.09–0.17 (chênh lệch giữa các điểm chỉ vài trăm nghìn USD
+  trên portfolio ~$130M) — nên xem cutoff 0.17 là một điểm trong một **vùng hợp lý**, không phải một ngưỡng
+  chính xác duy nhất; PSI ổn định giữa train/val/test (xem `psi_report.csv`) nên không có dấu hiệu cần
+  recalibrate ngay, nhưng vẫn nên theo dõi định kỳ nếu áp dụng cho vintage mới hơn.
 - Giữ nguyên 2 business rules override làm lớp bảo vệ bổ sung, độc lập với cutoff score.
