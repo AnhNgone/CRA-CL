@@ -1,4 +1,4 @@
 comparison,psi,verdict
-train -> val,0.035345581123473274,on dinh
-train -> test,0.0104046453042183,on dinh
-val -> test,0.010552482671994986,on dinh
+train -> val,0.03349575871213869,on dinh
+train -> test,0.01080506870934127,on dinh
+val -> test,0.009960887434722251,on dinh

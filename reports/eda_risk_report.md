@@ -84,13 +84,18 @@ Sprint 2 mở rộng từ 8/16): top 10 theo IV — `fico_mid` (0.150), `acc_ope
 Các biến ứng viên không lọt shortlist vẫn được giữ trong `data/processed/` để phục vụ Customer Dashboard và
 business rules, nhưng **không** đưa vào model.
 
-**SHAP feature importance** (từ LightGBM, `reports/figures/shap_feature_importance.png`, top 10):
-`fico_mid` (0.228) > `loan_to_income` (0.206) > `dti` (0.152) > `acc_open_past_24mths` (0.124) >
-`tot_hi_cred_lim` (0.090) > `home_ownership` (0.085) > `mo_sin_old_rev_tl_op` (0.081) >
-`verification_status` (0.078) > `total_rev_hi_lim` (0.076) > `percent_bc_gt_75` (0.072). `loan_to_income`
-(biến tỷ lệ mới tạo ở Sprint 2 — payment-to-income) lọt top 2, xác nhận giả thuyết ở Sprint 1 rằng biến tỷ lệ
-mang tín hiệu mạnh hơn biến thành phần (`loan_amnt` đơn lẻ chỉ IV 0.005). Thứ hạng SHAP và IV nhất quán ở
-nhóm đầu — FICO, DTI và `acc_open_past_24mths` là các yếu tố rủi ro hàng đầu theo cả hai phương pháp.
+**Lưu ý 12/08**: 40 biến này là shortlist qua ngưỡng IV — vẫn là bộ candidate đưa vào train ở notebook 04.
+Sau train, SHAP cho thấy 6/40 biến gần như không đóng góp gì cho LightGBM (`mean|SHAP| < 0.01`) dù đã qua
+ngưỡng IV đơn biến — bị cắt tiếp, model chính hiện dùng **34 biến** (chi tiết mục 3).
+
+**SHAP feature importance** (từ LightGBM, `reports/figures/shap_feature_importance.png`, top 10 — cập nhật
+sau khi cắt 6 biến noise và tuning ở mục 3): `loan_to_income` (0.219) > `fico_mid` (0.204) > `dti` (0.158) >
+`acc_open_past_24mths` (0.126) > `tot_hi_cred_lim` (0.108) > `total_rev_hi_lim` (0.107) >
+`mo_sin_old_rev_tl_op` (0.093) > `percent_bc_gt_75` (0.092) > `home_ownership` (0.088) >
+`verification_status` (0.075). `loan_to_income` (biến tỷ lệ mới tạo ở Sprint 2 — payment-to-income) vượt lên
+hạng 1 sau khi tuning (trước đó hạng 2, sau `fico_mid`), xác nhận giả thuyết ở Sprint 1 rằng biến tỷ lệ mang
+tín hiệu mạnh hơn biến thành phần (`loan_amnt` đơn lẻ chỉ IV 0.005). Thứ hạng SHAP và IV nhất quán ở nhóm
+đầu — FICO, DTI và `acc_open_past_24mths` là các yếu tố rủi ro hàng đầu theo cả hai phương pháp.
 
 **Lưu ý quan trọng**: `grade`/`sub_grade`/`int_rate` bị loại khỏi tập feature dự báo vì đây là *kết quả* từ
 underwriting nội bộ của Lending Club, không phải đặc điểm thô của khách hàng (xem BRD.md mục 4). Điều này
@@ -108,13 +113,26 @@ performance trên test set.
 
 | Model | AUC (test) | KS (test) | Gini (test) | Đạt AUC≥0.68? | Đạt KS≥0.25? |
 |---|---|---|---|---|---|
-| Logistic Regression + WOE | 0.6739 | 0.2527 | 0.3478 | Không (thiếu 0.006) | Có |
-| **LightGBM (model chính)** | **0.7004** | **0.2891** | **0.4007** | **Có** | **Có** |
+| Logistic Regression + WOE | 0.6737 | 0.2520 | 0.3474 | Không (thiếu 0.006) | Có |
+| **LightGBM (model chính)** | **0.7023** | **0.2926** | **0.4047** | **Có** | **Có** |
 
 > **Cập nhật Sprint 2 (so với bản Sprint 1: LR AUC 0.6516/KS 0.2197, LightGBM AUC 0.6607/KS 0.2308):** sau khi
 > mở rộng candidate set từ 17 lên 81 biến (8→40 biến qua ngưỡng IV), cả hai model đều cải thiện rõ rệt. Cả
 > **LightGBM đã đạt cả hai tiêu chí AUC/KS** — đúng như chẩn đoán ở Sprint 1 rằng nguyên nhân chính là thiếu
 > biến (17/151 cột), không phải giới hạn cấu trúc model.
+>
+> **Cập nhật 12/08 (cắt feature theo SHAP + tuning):** SHAP cho thấy 6/40 biến có `mean|SHAP| < 0.01`
+> (< 1/23 so với `fico_mid`) — gần như không được LightGBM dùng dù đã qua ngưỡng IV đơn biến; 5/6 biến này
+> cũng nằm trong nhóm hệ số LR sai dấu (mục 3.1). Cắt còn **34 biến**, train lại: val/test AUC gần như không
+> đổi (xác nhận đúng là noise), nhưng gap train-val của LightGBM lại **nới rộng** (0.735→0.744 train trong
+> khi val đứng yên) — cắt feature một mình không giải quyết overfit của cây. Chạy tiếp random search 15 lần
+> (chỉ trên train+validation, không đụng test) trên `num_leaves`/`min_child_samples`/`feature_fraction`/
+> `bagging_fraction`/`reg_alpha`/`reg_lambda`/`learning_rate` — chọn bộ tham số có val AUC cao nhất
+> (`learning_rate=0.05, num_leaves=15, min_child_samples=400, feature_fraction=0.7, bagging_fraction=0.7,
+> reg_lambda=0.5`). Kết quả: gap train-val giảm từ 0.045 (bản 40 biến) xuống **0.036**, đồng thời AUC/KS trên
+> test còn **tăng nhẹ** (0.7004→0.7023 / 0.2891→0.2926) — cải thiện cả hai chiều cùng lúc, không phải đánh
+> đổi. Chi tiết 15 lần thử: `reports/figures/lightgbm_tuning_trials.csv`; tham số cuối:
+> `reports/figures/lightgbm_tuned_params.json`. LR không đổi (không nằm trong phạm vi tuning lần này).
 
 **Cả 2 model giờ đạt hoặc gần đạt mục tiêu đề ra trong PROPOSAL (AUC≥0.68, KS≥0.25).** LightGBM đạt cả hai;
 Logistic Regression + WOE đạt KS nhưng còn thiếu 0.006 để đạt AUC — nguyên nhân chính là đa cộng tuyến giữa
@@ -129,21 +147,22 @@ hạn chế cần khắc phục (xem BRD.md mục 4).
 
 | Quý | n | Bad rate | AUC (LR) | AUC (LightGBM) |
 |---|---|---|---|---|
-| 2017Q1 | 13,240 | 19.72% | 0.6770 | 0.6979 |
-| 2017Q2 | 34,120 | 20.94% | 0.6804 | 0.7032 |
-| 2017Q3 | 32,962 | 20.53% | 0.6741 | 0.7005 |
-| 2017Q4 | 24,882 | 17.92% | 0.6581 | 0.6950 |
+| 2017Q1 | 13,240 | 19.72% | 0.6762 | 0.7005 |
+| 2017Q2 | 34,120 | 20.94% | 0.6804 | 0.7044 |
+| 2017Q3 | 32,962 | 20.53% | 0.6739 | 0.7026 |
+| 2017Q4 | 24,882 | 17.92% | 0.6579 | 0.6978 |
 
-AUC (LightGBM) dao động 0.695–0.703 qua 4 quý, không có sụt giảm bất thường — mô hình ổn định về khả năng
-phân biệt dù bad rate nền thay đổi.
+AUC (LightGBM) dao động 0.698–0.704 qua 4 quý (sau tuning 12/08), không có sụt giảm bất thường — mô hình ổn
+định về khả năng phân biệt dù bad rate nền thay đổi.
 
-**Chọn model chính:** chênh lệch AUC (LightGBM − LR) là **0.0265**, **vượt** ngưỡng 0.02 tự đặt ở Sprint 1 →
-model chính đổi thành **LightGBM** (đảo ngược kết luận Sprint 1, khi đó chênh lệch chỉ 0.0090 nên chọn LR để
-ưu tiên giải thích được). Bù lại cho việc mất tính diễn giải trực tiếp qua hệ số, dùng **SHAP**
-(`reports/figures/shap_importance.csv`, mục 2) để giải thích đóng góp từng biến ở cấp độ model và từng khoản
-vay — đây là thực hành chuẩn khi dùng tree-based model cho credit scoring thay vì scorecard tuyến tính.
+**Chọn model chính:** chênh lệch AUC (LightGBM − LR) trên validation là **0.0258** (0.0286 trên test, chỉ đối
+chiếu), **vượt** ngưỡng 0.02 tự đặt ở Sprint 1 → model chính là **LightGBM** (đảo ngược kết luận Sprint 1,
+khi đó chênh lệch chỉ 0.0090 nên chọn LR để ưu tiên giải thích được). Bù lại cho việc mất tính diễn giải trực
+tiếp qua hệ số, dùng **SHAP** (`reports/figures/shap_importance.csv`, mục 2) để giải thích đóng góp từng biến
+ở cấp độ model và từng khoản vay — đây là thực hành chuẩn khi dùng tree-based model cho credit scoring thay
+vì scorecard tuyến tính.
 
-### 3.1. Hệ số scorecard — 9/40 sai dấu sau khi mở rộng biến (chưa xử lý, không chặn tiến độ)
+### 3.1. Hệ số scorecard — 4/34 sai dấu sau khi cắt feature theo SHAP (chưa xử lý hết, không chặn tiến độ)
 
 Quy ước WOE của `optbinning`: `WoE = ln(P(x|good) / P(x|bad))`, nên bin **ít rủi ro** có WoE **dương**.
 Model dự báo `bad_flag = 1`, vì vậy hệ số kỳ vọng **âm** cho mọi biến. Hệ số dương là dấu hiệu bất thường.
@@ -169,10 +188,17 @@ nhau; `credit_history_length` có thể hấp thụ lẫn với các biến "th�
 `mths_since_recent_*`) đo cùng trục thời gian tín dụng. Khác với `revol_util` trước đây (loại thẳng vì dưới
 ngưỡng IV), các biến này đều **có IV hợp lệ đơn biến** — vấn đề chỉ xuất hiện khi đưa cùng lúc vào LR.
 
-**Không xử lý trong Sprint 2** vì không ảnh hưởng đến model chính: LightGBM (tree-based) không nhạy với đa
-cộng tuyến theo cách LR gặp phải, và LightGBM đã trở thành model chính (mục 3). Nếu Sprint 3 cần khôi phục
-Logistic Regression làm scorecard dự phòng/đối chiếu, cần lọc bớt biến tương quan (VIF hoặc loại bớt biến
-trùng khái niệm) trước khi fit lại.
+> **Cập nhật 12/08 — cắt 5/9 biến sai dấu như hệ quả phụ của việc cắt noise theo SHAP.** Bước cắt 6 biến
+> `mean|SHAP| < 0.01` ở mục 3 (không nhằm mục đích sửa dấu, mục đích chính là bỏ noise) tình cờ loại luôn
+> `open_rv_12m`, `open_acc_6m`, `open_il_24m`, `avg_cur_bal`, `tot_cur_bal` — 5/9 biến sai dấu, đúng nhóm biến
+> đa cộng tuyến mô tả ở trên. Còn lại **4/34 hệ số sai dấu**: `revol_bal` (+0.071), `inq_last_12m` (+0.089),
+> `mo_sin_rcnt_rev_tl_op` (+0.383), `credit_history_length` (+0.552) — cùng cơ chế đa cộng tuyến, chưa xử lý
+> triệt để (cần VIF hoặc loại bớt biến trùng khái niệm nếu muốn dùng LR làm scorecard chính thức).
+
+**Không xử lý dứt điểm phần còn lại** vì không ảnh hưởng đến model chính: LightGBM (tree-based) không nhạy với
+đa cộng tuyến theo cách LR gặp phải, và LightGBM vẫn là model chính (mục 3). Nếu cần khôi phục Logistic
+Regression làm scorecard dự phòng/đối chiếu, cần lọc bớt biến tương quan (VIF hoặc loại bớt biến trùng khái
+niệm, ví dụ giữ 1 trong 2 biến `credit_history_length`/`mo_sin_rcnt_rev_tl_op`) trước khi fit lại.
 
 **Lịch sử — lỗi `revol_util` ở Sprint 1 (đã xử lý dứt điểm, không tái phát ở 40 biến hiện tại):** bản model
 đầu tiên có `revol_util_woe` mang hệ số dương (+0.228) do bước chọn biến tính IV trên toàn bộ vintage thay vì
@@ -190,19 +216,20 @@ tính ngũ phân vị trực tiếp trên test (xem rà soát chất lượng �
 
 | Segment | n | Bad rate | Avg PD score | Avg loan_amnt | Avg int_rate |
 |---|---|---|---|---|---|
-| S1 (rủi ro thấp nhất) | 24,876 | 6.59% | 5.74% | $11,676 | 8.73% |
-| S2 | 21,316 | 13.70% | 11.35% | $11,450 | 11.55% |
-| S3 | 20,431 | 19.47% | 16.41% | $11,734 | 13.20% |
-| S4 | 19,643 | 26.15% | 22.57% | $12,222 | 14.63% |
-| S5 (rủi ro cao nhất) | 18,938 | 38.58% | 34.56% | $13,602 | 16.88% |
+| S1 (rủi ro thấp nhất) | 24,847 | 6.61% | 5.52% | $11,548 | 8.78% |
+| S2 | 21,272 | 13.54% | 11.19% | $11,411 | 11.58% |
+| S3 | 20,200 | 19.47% | 16.29% | $11,704 | 13.13% |
+| S4 | 19,709 | 25.80% | 22.60% | $12,278 | 14.59% |
+| S5 (rủi ro cao nhất) | 19,176 | 38.80% | 34.97% | $13,761 | 16.84% |
 
-Kiểm định chi-square: chi²=7892.78, p<0.000001 — **default rate tách biệt rõ rệt và có ý nghĩa thống kê giữa
-5 segment**, đạt tiêu chí Success Metric của PROPOSAL (mục 2). Bad rate tăng đơn điệu từ S1→S5 (6.6%→38.6%,
-chênh lệch ~5.9 lần — tách biệt rõ hơn nhiều so với scorecard Sprint 1 cũ, khi đó chỉ 8.6%→32.2%, ~3.8 lần).
+Kiểm định chi-square: chi²=8012.81, p<0.000001 — **default rate tách biệt rõ rệt và có ý nghĩa thống kê giữa
+5 segment**, đạt tiêu chí Success Metric của PROPOSAL (mục 2). Bad rate tăng đơn điệu từ S1→S5 (6.6%→38.8%,
+chênh lệch ~5.9 lần — tách biệt rõ hơn nhiều so với scorecard Sprint 1 cũ, khi đó chỉ 8.6%→32.2%, ~3.8 lần;
+số liệu 12/08 sau cắt feature + tuning gần như không đổi so với bản Sprint 2, 6.59%→38.58%).
 
-Quan sát nghiệp vụ: `avg_int_rate` tăng đơn điệu cùng chiều với bad rate (8.73% → 16.88%). Nghĩa là risk
+Quan sát nghiệp vụ: `avg_int_rate` tăng đơn điệu cùng chiều với bad rate (8.78% → 16.84%). Nghĩa là risk
 score của dự án — dù xây **hoàn toàn độc lập** với `grade`/`int_rate` của Lending Club — vẫn xếp hạng rủi ro
 theo cùng chiều với underwriting nội bộ của LC. Đây là một dạng kiểm chứng chéo (external validity) cho
-model. Khác với scorecard cũ, `avg_loan_amnt` không còn giảm đơn điệu theo segment (dao động $11,450–$13,602,
+model. Khác với scorecard cũ, `avg_loan_amnt` không còn giảm đơn điệu theo segment (dao động $11,411–$13,761,
 thấp nhất ở S2 chứ không phải S5) — vì `loan_to_income` (biến tỷ lệ, không phải `loan_amnt` thô) mới là yếu
 tố ảnh hưởng mạnh, nên quy mô khoản vay tuyệt đối không còn tương quan đơn điệu với rủi ro như ở model cũ.

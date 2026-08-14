@@ -7,6 +7,11 @@ Model chính dùng **LightGBM** (đổi từ Logistic Regression + WOE ở Sprin
 Tất cả số liệu và biểu đồ nguồn: `reports/figures/cutoff_table.csv`, `cutoff_profitability_analysis.png`,
 `business_rules.csv`.
 
+> **Cập nhật 12/08**: model LightGBM đã cắt 6 biến noise (40→34) và tuning hyperparameter (xem
+> eda_risk_report.md mục 3) — `pd_score` từng khoản vay đổi nhẹ, kéo theo cutoff đề xuất và policy split
+> dưới đây thay đổi so với bản trước. Business rules ở mục 2 (dựa trên IV của biến thô, không phụ thuộc
+> `pd_score`) không đổi.
+
 ## 1. Cutoff Analysis (approval rate, bad rate, Expected Net Return)
 
 **LGD (Loss Given Default) thực tế**: tính từ dữ liệu gốc (aggregate, không dùng làm feature model) =
@@ -27,10 +32,10 @@ TERM_YEARS, nhóm Good được duyệt) − Σ(loan_amnt × LGD, nhóm Bad đư
 > LightGBM phân tách rủi ro tốt hơn (xem segment ở eda_risk_report.md mục 4), profile lợi nhuận theo cutoff
 > cũng thay đổi so với bản Sprint 1.
 
-**Tại approval rate ~78.7%** (mức tham chiếu ~80% theo PROPOSAL mục 2): bad rate nhóm được duyệt theo score =
-**15.32%**, so với bad rate nếu duyệt ngẫu nhiên (= bad rate quần thể) = **19.94%** — model giảm được ~4.6
-điểm % bad rate tại cùng mức approval rate (so với ~3.1 điểm % của model Sprint 1). Con số này không phụ
-thuộc vào `TERM_YEARS` (chỉ dựa trên bad rate, không dựa trên tiền lãi) nên không đổi so với Sprint 2.
+**Tại approval rate ~78.3%** (mức tham chiếu ~80% theo PROPOSAL mục 2): bad rate nhóm được duyệt theo score =
+**15.20%**, so với bad rate nếu duyệt ngẫu nhiên (= bad rate quần thể) = **19.94%** — model giảm được ~4.7
+điểm % bad rate tại cùng mức approval rate (so với ~3.1 điểm % của model Sprint 1, ~4.6 điểm % của bản trước
+tuning 12/08). Con số này không phụ thuộc vào `TERM_YEARS` (chỉ dựa trên bad rate, không dựa trên tiền lãi).
 
 > **Phát hiện quan trọng (Tuần 5) — vì sao không còn chọn cutoff theo Expected Net Return tuyệt đối:** sau
 > khi sửa `TERM_YEARS`, tổng lãi thu được tăng mạnh theo **khối lượng hồ sơ được duyệt**, khiến argmax theo
@@ -45,22 +50,26 @@ thuộc vào `TERM_YEARS` (chỉ dựa trên bad rate, không dựa trên tiền
 
 | Chỉ số | Giá trị (test) |
 |---|---|
-| Cutoff (pd_score ≤) | 0.17 |
-| Approval rate | 55.9% |
-| Bad rate (nhóm duyệt) | 11.71% |
-| Interest income (3 năm) | $183.18M |
-| Expected loss | $49.51M |
-| Expected Net Return | $133.67M |
-| Net Return nếu duyệt ngẫu nhiên (cùng n) | $133.97M |
-| Uplift so với ngẫu nhiên (test) | −$0.30M (≈0) |
-| Uplift so với ngẫu nhiên (validation, lúc chọn ngưỡng) | +$11.23M |
+| Cutoff (pd_score ≤) | 0.19 |
+| Approval rate | 62.7% |
+| Bad rate (nhóm duyệt) | 12.70% |
+| Interest income (3 năm) | $208.42M |
+| Expected loss | $59.98M |
+| Expected Net Return | $148.45M |
+| Net Return nếu duyệt ngẫu nhiên (cùng n) | $150.33M |
+| Uplift so với ngẫu nhiên (test) | −$1.88M (≈0) |
+| Uplift so với ngẫu nhiên (validation, lúc chọn ngưỡng) | +$11.37M |
+
+> **Cập nhật 12/08**: cutoff dịch từ 0.17 lên **0.19** sau khi model được cắt feature + tuning (mục ghi chú ở
+> đầu file) — `pd_score` đổi nhẹ nên vị trí argmax uplift trên validation cũng đổi theo. Approval rate tại
+> cutoff đề xuất tăng từ 55.9% lên 62.7%.
 
 Với lãi tính đủ 3 năm, **duyệt ngẫu nhiên tại quy mô này cũng có lãi dương** — khác kết luận Sprint 2 ("duyệt
 ngẫu nhiên bị lỗ"), vốn là hệ quả của công thức lãi 1 kỳ đánh giá thấp thu nhập lãi. Khi lãi suất trung bình
 (~13%/năm × 3 năm) vượt xa LGD 58.87% × bad rate quần thể, hầu hết chiến lược duyệt đều sinh lãi dương về
 tổng số — **giá trị thực sự của risk score nằm ở phần uplift so với ngẫu nhiên, không phải ở việc biến lỗ
 thành lãi**. Uplift trên test tại cutoff đã chọn gần bằng 0 (dù dương rõ rệt trên validation lúc chọn ngưỡng)
-— cho thấy đường cong uplift khá phẳng quanh vùng cutoff 0.09–0.17 (xem `cutoff_table.csv`), một giới hạn cần
+— cho thấy đường cong uplift khá phẳng quanh vùng cutoff 0.11–0.21 (xem `cutoff_table.csv`), một giới hạn cần
 nêu rõ hơn là một kết luận chắc chắn về "cutoff tối ưu duy nhất". Business rules ở mục 2 vẫn là lớp bảo vệ bổ
 sung độc lập với lựa chọn cutoff này.
 
@@ -101,20 +110,20 @@ xét duyệt thủ công bổ sung.
 
 | Quyết định | Tỷ lệ |
 |---|---|
-| Approve | 53.2% |
+| Approve | 59.4% |
 | Review (business rule override) | 8.5% |
-| Reject | 38.3% |
+| Reject | 32.1% |
 
-**Khuyến nghị**: cutoff `pd_score ≤ 0.17` (tối đa hóa uplift so với ngẫu nhiên, chọn trên validation — xem
-mục 1) là điểm tham chiếu kỹ thuật, duyệt được **53.2%** hồ sơ sau khi trừ phần bị business rule chuyển sang
-Review — rộng hơn đáng kể so với bản Sprint 2 (~39%, khi đó dùng công thức lãi 1 kỳ), nhưng **vẫn thấp hơn
-chính sách vận hành thực tế thường thấy** (thường 70–85% approval rate). Vì mục tiêu dự án là minh họa
-phương pháp luận (không triển khai thật — xem PROPOSAL mục 10), đề xuất:
+**Khuyến nghị**: cutoff `pd_score ≤ 0.19` (tối đa hóa uplift so với ngẫu nhiên, chọn trên validation — xem
+mục 1) là điểm tham chiếu kỹ thuật, duyệt được **59.4%** hồ sơ sau khi trừ phần bị business rule chuyển sang
+Review — rộng hơn đáng kể so với bản Sprint 2 (~39%, khi đó dùng công thức lãi 1 kỳ) và bản trước tuning
+12/08 (~53%), nhưng **vẫn thấp hơn chính sách vận hành thực tế thường thấy** (thường 70–85% approval rate).
+Vì mục tiêu dự án là minh họa phương pháp luận (không triển khai thật — xem PROPOSAL mục 10), đề xuất:
 
 - Dùng bảng cutoff đầy đủ (`cutoff_table.csv`) để chọn điểm cân bằng theo khẩu vị rủi ro thực tế của tổ chức
-  (ví dụ mức ~79% approval rate cho bad rate 15.32%, thay vì điểm tối ưu uplift ở ~56%).
-- Đường cong uplift khá phẳng quanh vùng cutoff 0.09–0.17 (chênh lệch giữa các điểm chỉ vài trăm nghìn USD
-  trên portfolio ~$130M) — nên xem cutoff 0.17 là một điểm trong một **vùng hợp lý**, không phải một ngưỡng
-  chính xác duy nhất; PSI ổn định giữa train/val/test (xem `psi_report.csv`) nên không có dấu hiệu cần
-  recalibrate ngay, nhưng vẫn nên theo dõi định kỳ nếu áp dụng cho vintage mới hơn.
+  (ví dụ mức ~78% approval rate cho bad rate 15.20%, thay vì điểm tối ưu uplift ở ~63%).
+- Đường cong uplift khá phẳng quanh vùng cutoff 0.11–0.21 (chênh lệch giữa các điểm chỉ vài trăm nghìn đến
+  vài triệu USD trên portfolio ~$150M) — nên xem cutoff 0.19 là một điểm trong một **vùng hợp lý**, không
+  phải một ngưỡng chính xác duy nhất; PSI ổn định giữa train/val/test (xem `psi_report.csv`) nên không có
+  dấu hiệu cần recalibrate ngay, nhưng vẫn nên theo dõi định kỳ nếu áp dụng cho vintage mới hơn.
 - Giữ nguyên 2 business rules override làm lớp bảo vệ bổ sung, độc lập với cutoff score.
