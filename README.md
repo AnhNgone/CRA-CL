@@ -20,8 +20,6 @@ src/
   data/load.py           # Đọc raw CSV
   data/filter_vintage.py # Lọc vintage 2015-2017, loại biến leakage
   features/               # WOE/IV, feature engineering
-  models/                 # Train/evaluate model
-models/          # Model artifact đã train (.pkl) — không commit
 reports/
   figures/                    # Biểu đồ xuất ra từ notebook
   BRD.md                      # Deliverable 1
