@@ -1,6 +1,6 @@
 # Hệ thống đánh giá và chấm điểm rủi ro tín dụng vay tiêu dùng
 
-**Loại hình:** Dự án cá nhân | **Thời lượng:** 5 tuần | **Dataset:** Lending Club Loan Data (Kaggle)
+**Loại hình:** Dự án cá nhân | **Thời lượng:** 6 tuần (kế hoạch gốc 5 tuần, gia hạn thêm vài ngày sang tuần 6) | **Dataset:** Lending Club Loan Data (Kaggle)
 
 ---
 
@@ -23,7 +23,7 @@ Thử thách:
 
 Xây dựng một **quy trình phân tích + mô hình risk scoring** giúp chuyên viên tín dụng đánh giá mức độ rủi ro của khách hàng trước khi phê duyệt khoản vay, kèm dashboard hỗ trợ ra quyết định.
 
-**Trong phạm vi 5 tuần, dự án tập trung vào chiều sâu (1 pipeline hoàn chỉnh, chất lượng) thay vì chiều rộng (nhiều bảng, nhiều dashboard).**
+**Trong phạm vi 6 tuần, dự án tập trung vào chiều sâu (1 pipeline hoàn chỉnh, chất lượng) thay vì chiều rộng (nhiều bảng, nhiều dashboard).**
 
 ### Success Metrics
 
@@ -50,7 +50,7 @@ Không đặt mục tiêu "giảm X% default rate trong thực tế" vì dự á
 
 **Lending Club Loan Data** (Kaggle) — nền tảng cho vay ngang hàng (P2P lending) tại Mỹ, hoạt động 2007–2020.
 
-- **Cấu trúc đơn giản**: 1 bảng phẳng chính (accepted loans) → pipeline khả thi cho 1 người trong 5 tuần.
+- **Cấu trúc đơn giản**: 1 bảng phẳng chính (accepted loans) → pipeline khả thi cho 1 người trong 6 tuần.
 - **Có trục thời gian rõ ràng** (`issue_d` — ngày giải ngân) → làm được time-based train/test split đúng chuẩn.
 - **Có `int_rate` (lãi suất) và `grade`/`sub_grade`** → tính được doanh thu kỳ vọng theo từng khoản vay, cho phép trả lời RQ4 ("cân bằng doanh thu và rủi ro") một cách định lượng thực sự.
 - **`loan_status` cho định nghĩa default rõ ràng**: Fully Paid / Charged Off / Default / Current / Late...
@@ -66,7 +66,7 @@ Không đặt mục tiêu "giảm X% default rate trong thực tế" vì dự á
 
 ### 4.2. Giới hạn quy mô — chọn cửa sổ thời gian phù hợp
 
-File `accepted` đầy đủ có ~2.9 triệu dòng, trải dài 2007–2020, kích thước hàng GB → **không xử lý toàn bộ trong 5 tuần**. Đề xuất giới hạn phạm vi:
+File `accepted` đầy đủ có ~2.9 triệu dòng, trải dài 2007–2020, kích thước hàng GB → **không xử lý toàn bộ trong 6 tuần**. Đề xuất giới hạn phạm vi:
 
 - Chỉ lấy khoản vay có kỳ hạn 36 tháng, **issue_d trong khoảng 2015–2017** — đủ thời gian để đến thời điểm dữ liệu được thu thập (2018+), các khoản vay này đã "chín" (matured), tức là đã kết thúc vòng đời (Fully Paid/Charged Off), tránh hiện tượng **censoring** (khoản vay còn "Current" thì chưa biết kết cục cuối).
 - Trong cửa sổ đó, chỉ giữ `loan_status` thuộc `{Fully Paid, Charged Off}` làm nhãn nhị phân (loại `Current`, `Late`, `In Grace Period`, `Default` xử lý riêng nếu còn thời gian).
@@ -146,7 +146,10 @@ Dashboard
 Business Recommendation
 ```
 
-## 8. Kế hoạch Sprint (5 tuần, chia 3 sprint)
+## 8. Kế hoạch Sprint (6 tuần, chia 3 sprint, mỗi sprint 2 tuần)
+
+> Kế hoạch gốc là 5 tuần; lịch được gia hạn thêm vài ngày và làm tròn thành tuần 6 để giữ cấu trúc đều
+> 2 tuần/sprint (thay vì 3 sprint không đều tuần như bản nháp ban đầu). Nội dung từng sprint dưới đây không đổi.
 
 ### Sprint 1 — Nền tảng dữ liệu & Business Understanding (Tuần 1–2)
 
@@ -164,7 +167,7 @@ Business Recommendation
 - [ ] Có bảng WOE/IV cho toàn bộ biến ứng viên
 - [ ] Business Requirement Document + EDA report (bản nháp) hoàn chỉnh
 
-### Sprint 2 — Risk Scoring Model (Tuần 3)
+### Sprint 2 — Risk Scoring Model (Tuần 3–4)
 
 **Nội dung:**
 - Time-based train/validation/test split theo `issue_d`
@@ -179,7 +182,7 @@ Business Recommendation
 - [ ] Đã chọn 1 model chính, có ghi lại lý do lựa chọn
 - [ ] Kiểm tra ổn định bad rate giữa các giai đoạn train/test (phát hiện vintage effect)
 
-### Sprint 3 — Business Analysis, Segmentation, Dashboard & Recommendation (Tuần 4–5)
+### Sprint 3 — Business Analysis, Segmentation, Dashboard & Recommendation (Tuần 5–6)
 
 **Nội dung:**
 - Customer Segmentation theo dải risk score (3–5 nhóm)

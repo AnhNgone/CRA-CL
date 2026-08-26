@@ -71,7 +71,7 @@ biến bureau tốt hơn scorecard tuyến tính. Theo đúng luật đã đặt
   duyệt ngẫu nhiên (19.94%) — đây là mức cân bằng thực tế hơn để tham khảo làm chính sách vận hành (so với
   3.1 điểm % của model Sprint 1 — LightGBM tách nhóm rủi ro thấp rõ hơn).
 - **Cutoff tối ưu hóa uplift Expected Net Return so với duyệt ngẫu nhiên** (đã sửa công thức lãi đủ 3 năm ở
-  Tuần 5, thay vì công thức lãi 1 kỳ trước đó) là `pd_score ≤ 0.19` (cập nhật 12/08 sau khi cắt feature +
+  cuối Tuần 4, thay vì công thức lãi 1 kỳ trước đó) là `pd_score ≤ 0.19` (cập nhật 12/08 sau khi cắt feature +
   tuning model, trước đó là 0.17), duyệt được 62.7% hồ sơ trên test — rộng hơn nhiều so với 55.9% của bản
   trước tuning, 40.6% của bản Sprint 2 và 28.8% của model Sprint 1. Vẫn thấp hơn approval rate vận hành
   thực tế thường thấy, chỉ mang tính tham chiếu kỹ thuật (chi tiết, gồm cả phát hiện quan trọng về lý do
@@ -81,6 +81,16 @@ biến bureau tốt hơn scorecard tuyến tính. Theo đúng luật đã đặt
   Ngưỡng được chọn trên tập validation, chỉ áp dụng (không tính lại) lên test để báo cáo — xem
   business_rules_policy.md mục 2. Đây là 2 biến mới thay cho `dti`/`inq_last_6mths` của Sprint 1 (IV cao
   hơn) — xem business_rules_policy.md mục 2 về 1 bug hướng quy tắc đã phát hiện và sửa khi đổi biến.
+
+**Giá trị thực của model nằm ở đâu, nếu uplift Expected Net Return trên test gần như bằng 0 (−$1.88M)?**
+Đối chiếu `avg_int_rate` theo segment (eda_risk_report.md mục 4) cho thấy Lending Club đã định giá rủi ro khá
+hiệu quả vào lãi suất (nhóm rủi ro cao hơn trả lãi cao hơn) — nên phần lãi mất đi khi từ chối nhóm rủi ro gần
+như bù trừ với phần expected loss tiết kiệm được, dù model được xây **độc lập** với `grade`/`int_rate` (chi
+tiết cơ chế và giới hạn liên quan đến giả định LGD cố định: business_rules_policy.md mục 1, đoạn "Vì sao
+uplift gần như bằng 0"). Vì vậy, khuyến nghị đúng nên đọc là: **model giảm rõ rệt bad rate/rủi ro tập trung
+của danh mục ở cùng mức lợi nhuận kỳ vọng** (12.70% so với 19.94% bad rate tại cutoff đề xuất), chứ không phải
+"tăng lợi nhuận tuyệt đối" — đây là cải thiện risk-adjusted thật, tương tự logic cùng return nhưng ít biến
+động hơn, không phải model không có giá trị.
 
 ## Giới hạn của mô hình
 
@@ -111,7 +121,7 @@ biến bureau tốt hơn scorecard tuyến tính. Theo đúng luật đã đặt
   Kết quả hầu như không đổi tại thời điểm đó (cutoff vẫn 0.17, model chính vẫn LightGBM) — xác nhận kết luận
   trước đó khá vững, không phải do ăn may khớp với test. (Cutoff đã đổi tiếp sang 0.19 sau đó vì lý do khác —
   cắt feature + tuning ngày 12/08, xem "Đề xuất cutoff" ở trên — không liên quan đến rò rỉ tập test.)
-- **Expected Net Return dùng công thức đơn giản hóa**: đã sửa lỗi "lãi 1 kỳ" ở Tuần 5 (nay nhân đúng
+- **Expected Net Return dùng công thức đơn giản hóa**: đã sửa lỗi "lãi 1 kỳ" cuối Tuần 4 (nay nhân đúng
   `TERM_YEARS = 3` theo kỳ hạn 36 tháng trong scope), nhưng vẫn là lãi đơn, không chiết khấu theo thời gian
   (time value of money) và không mô hình hóa trả nợ sớm/delinquency — vẫn cần dòng tiền đầy đủ (amortization
   schedule) trước khi dùng cho quyết định thực tế. Việc sửa này cũng phát hiện một lỗi phương pháp thứ hai:
@@ -119,9 +129,14 @@ biến bureau tốt hơn scorecard tuyến tính. Theo đúng luật đã đặt
   phía duyệt gần hết hồ sơ) — đã sửa bằng cách chọn theo **uplift so với duyệt ngẫu nhiên** thay vì giá trị
   tuyệt đối (chi tiết: business_rules_policy.md mục 1).
 - **LGD là số liệu tổng hợp cố định** (58.87%, tính từ toàn bộ khoản Charged Off trong vintage), chưa phân
-  biệt theo segment/loại khách hàng — LGD thực tế có thể khác nhau giữa các nhóm rủi ro.
+  biệt theo segment/loại khách hàng — LGD thực tế có thể khác nhau giữa các nhóm rủi ro. Đây là lý do khiến
+  uplift Expected Net Return ≈0 ở mục "Đề xuất cutoff" **chưa hoàn toàn đáng tin**: nếu LGD thực tế thay đổi
+  theo segment (thường thì có), đường cong uplift có thể không phẳng như kết quả hiện tại — chưa xử lý vì
+  ngoài phạm vi thời gian dự án.
 - **RQ5 (approval rate accepted vs rejected)** chỉ mang tính xấp xỉ do khác schema (`Risk_Score` vs
   `fico_range_low/high`) — không phải reject-inference chuẩn xác.
-- **Dashboard Power BI/Tableau chưa được dựng** — dữ liệu tổng hợp đã export sẵn vào `dashboards/`
-  (segment_summary, cutoff_table, iv_ranking, iv_ranking_train, business_rules, customer_dashboard_data,
-  đã cập nhật theo model LightGBM) để dựng dashboard ở Sprint 3.
+- **Dashboard Power BI**: `dashboards/CRDashboard.pbix` (2 trang — Risk & Portfolio Monitoring, Customer),
+  dựng từ dữ liệu tổng hợp trong `dashboards/*.csv` (segment_summary, cutoff_table, iv_ranking,
+  iv_ranking_train, business_rules, customer_dashboard_data — đã cập nhật theo model LightGBM đã tune và bổ
+  sung giải thích SHAP theo từng khách hàng). Trang Customer có tra cứu theo `customer_id` kèm 3 lý do ảnh
+  hưởng đến score — đúng yêu cầu PROPOSAL mục 6.2.

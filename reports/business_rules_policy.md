@@ -18,7 +18,7 @@ Tất cả số liệu và biểu đồ nguồn: `reports/figures/cutoff_table.c
 **58.87%** = 1 − (tổng vốn gốc thu hồi + recoveries) / tổng vốn gốc giải ngân, trên các khoản Charged Off
 trong vintage 2015–2017. Đây là input cho Expected Net Return bên dưới, không phải giả định tùy ý.
 
-**Công thức** (theo PROPOSAL mục 5.2, đã sửa ở Tuần 5): `Expected Net Return = Σ(int_rate × loan_amnt ×
+**Công thức** (theo PROPOSAL mục 5.2, đã sửa cuối Tuần 4): `Expected Net Return = Σ(int_rate × loan_amnt ×
 TERM_YEARS, nhóm Good được duyệt) − Σ(loan_amnt × LGD, nhóm Bad được duyệt)`, với `TERM_YEARS = 3` (scope dự
 án chỉ giữ khoản vay kỳ hạn 36 tháng — xem PROPOSAL mục 4.2).
 
@@ -37,7 +37,7 @@ TERM_YEARS, nhóm Good được duyệt) − Σ(loan_amnt × LGD, nhóm Bad đư
 điểm % bad rate tại cùng mức approval rate (so với ~3.1 điểm % của model Sprint 1, ~4.6 điểm % của bản trước
 tuning 12/08). Con số này không phụ thuộc vào `TERM_YEARS` (chỉ dựa trên bad rate, không dựa trên tiền lãi).
 
-> **Phát hiện quan trọng (Tuần 5) — vì sao không còn chọn cutoff theo Expected Net Return tuyệt đối:** sau
+> **Phát hiện quan trọng (cuối Tuần 4, 12/08) — vì sao không còn chọn cutoff theo Expected Net Return tuyệt đối:** sau
 > khi sửa `TERM_YEARS`, tổng lãi thu được tăng mạnh theo **khối lượng hồ sơ được duyệt**, khiến argmax theo
 > Expected Net Return tuyệt đối bị kéo về phía duyệt gần hết hồ sơ (~97% approval rate) — dù ở mức đó model
 > hầu như không tạo thêm giá trị gì so với duyệt ngẫu nhiên (uplift âm rất sâu). Đây chính xác là cái bẫy mà
@@ -72,6 +72,26 @@ thành lãi**. Uplift trên test tại cutoff đã chọn gần bằng 0 (dù d�
 — cho thấy đường cong uplift khá phẳng quanh vùng cutoff 0.11–0.21 (xem `cutoff_table.csv`), một giới hạn cần
 nêu rõ hơn là một kết luận chắc chắn về "cutoff tối ưu duy nhất". Business rules ở mục 2 vẫn là lớp bảo vệ bổ
 sung độc lập với lựa chọn cutoff này.
+
+> **Vì sao uplift gần như bằng 0 (thậm chí hơi âm) — có phải lỗi tính toán không?** Không phải lỗi. Đối chiếu
+> với `avg_int_rate` theo segment (eda_risk_report.md mục 4): lãi suất trung bình tăng đơn điệu cùng chiều với
+> bad rate qua cả 5 nhóm — dù risk score được xây **hoàn toàn độc lập** với `grade`/`int_rate` của Lending
+> Club. Cơ chế: khi ưu tiên duyệt nhóm an toàn theo score, đồng thời cũng bỏ qua đúng phần lãi suất cao hơn mà
+> nhóm rủi ro phải trả (vì LC đã định giá rủi ro vào lãi suất ngay từ đầu) — hai hiệu ứng (giảm expected loss,
+> mất phần lãi cao) gần như triệt tiêu nhau về giá trị kỳ vọng tính bằng tiền. Đây là một **finding hợp lý về
+> kinh tế học tín dụng** (risk-based pricing của Lending Club đã tương đối hiệu quả), không phải bug — model
+> vẫn phân biệt rủi ro rất tốt (bad rate 12.70% vs 19.94% ở cùng cutoff), chỉ là "phân biệt rủi ro tốt" không
+> tự động đồng nghĩa "kiếm nhiều tiền hơn theo kỳ vọng" khi giá đã phản ánh đúng rủi ro.
+>
+> **Vì sao con số uplift này chưa đáng tin 100%:** phép tính trên dùng LGD cố định **58.87% cho mọi segment**
+> (xem final_recommendation.md, mục "Giới hạn của mô hình"). Nếu LGD thực tế khác nhau theo segment — thường
+> thì có, ví dụ nhóm rủi ro cao hơn có thể thu hồi kém hơn tỷ lệ trung bình — đường cong uplift có thể không
+> phẳng như kết quả hiện tại. Đây là giả định đơn giản hóa đã biết trước, chưa xử lý vì ngoài phạm vi thời
+> gian dự án, không phải một sai sót mới phát hiện.
+>
+> **Ý nghĩa cho khuyến nghị:** nên trình bày giá trị của model là **giảm bad rate/rủi ro tập trung của danh
+> mục ở cùng mức lợi nhuận kỳ vọng**, không phải "tăng lợi nhuận tuyệt đối" — đây là một cải thiện risk-adjusted
+> thật (cùng $ lợi nhuận, danh mục ít rủi ro/biến động hơn), không phải model vô dụng chỉ vì uplift $ ≈0.
 
 ## 2. Business Rules Override
 
